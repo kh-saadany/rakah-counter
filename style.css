@@ -154,10 +154,14 @@ html[lang="en"] body {
   display: none; /* Chrome, Safari, Opera */
 }
 
-/* Home view: spread items evenly to fill full screen height */
+/* Home view: push buttons to bottom, filling full screen height */
 #view-home.active {
-  justify-content: space-between;
   overflow-y: hidden;
+  justify-content: flex-start;
+}
+/* Push the start button (and everything after) to the bottom */
+#view-home #btn-start {
+  margin-top: auto;
 }
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
