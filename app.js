@@ -238,6 +238,7 @@ const elements = {
   tashahhudOverlay: document.getElementById("tashahhud-overlay"),
   tashahhudCountdown: document.getElementById("tashahhud-countdown"),
   btnSkipTashahhud: document.getElementById("btn-skip-tashahhud"),
+  btnAthkarBackHome: document.getElementById("btn-athkar-back-home"),
 
   // Debug panel elements
   dbgCurrent: document.getElementById("dbg-current"),
@@ -470,6 +471,13 @@ function setupEventHandlers() {
   if (elements.btnSkipTashahhud) {
     elements.btnSkipTashahhud.addEventListener("click", () => {
       endTashahhud();
+    });
+  }
+
+  // Athkar Back to Home Button
+  if (elements.btnAthkarBackHome) {
+    elements.btnAthkarBackHome.addEventListener("click", () => {
+      exitPrayer(true);
     });
   }
 
