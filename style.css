@@ -1,0 +1,854 @@
+/* Core Styling Variables */
+:root {
+  --primary-color: #0F3A20; /* Deep Emerald */
+  --primary-glow: rgba(15, 58, 32, 0.4);
+  --accent-color: #D4AF37; /* Gold */
+  --accent-glow: rgba(212, 175, 55, 0.4);
+  
+  --bg-color-1: #061109; /* Obsidian-emerald dark */
+  --bg-color-2: #050706; /* Pitch black */
+  --text-color: #F5F7F6; /* Soft Off-White */
+  --text-muted: #8E9B93; /* Muted green-grey */
+  
+  --glass-bg: rgba(10, 26, 15, 0.5);
+  --glass-border: rgba(212, 175, 55, 0.15);
+  
+  --font-ar: 'Tajawal', sans-serif;
+  --font-en: 'Outfit', sans-serif;
+  
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Reset and Layout Rules */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: linear-gradient(135deg, var(--bg-color-1) 0%, var(--bg-color-2) 100%);
+  color: var(--text-color);
+  font-family: var(--font-ar);
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+}
+
+
+/* RTL and LTR Language Handling */
+html[lang="en"] body {
+  font-family: var(--font-en);
+}
+
+#app-container {
+  width: 100%;
+  max-width: 480px; /* Target mobile screens */
+  height: 100%;
+  max-height: 100vh;
+  max-height: -webkit-fill-available;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding: calc(16px + var(--safe-area-inset-top)) 20px calc(24px + var(--safe-area-inset-bottom)) 20px;
+  position: relative;
+  z-index: 2;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Sujud Dark Overlay (Dims Screen completely during Sujud) */
+#sujud-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #020704; /* Pitch black emerald */
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s cubic-bezier(0.1, 0.8, 0.3, 1);
+}
+#sujud-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* Header Styling */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0 20px 0;
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.logo-icon {
+  font-size: 1.5rem;
+}
+.logo-text {
+  font-weight: 700;
+  font-size: 1.25rem;
+  letter-spacing: -0.5px;
+  color: var(--text-color);
+  background: linear-gradient(120deg, var(--text-color) 40%, var(--accent-color) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.btn-icon {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 6px 14px;
+  color: var(--text-color);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+.btn-icon:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent-color);
+}
+
+/* Views Management */
+.app-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  position: absolute;
+  left: -9999px;
+  width: 100%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease-out;
+}
+.app-view.active {
+  position: relative;
+  left: 0;
+  opacity: 1;
+  pointer-events: all;
+  overflow-y: auto;
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+.app-view.active::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Card Elements (Glassmorphism) */
+.glass-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Home Screen specific styling */
+.hero-card {
+  text-align: center;
+  padding: 30px 20px;
+  background: linear-gradient(180deg, rgba(15, 58, 32, 0.3) 0%, rgba(10, 26, 15, 0.6) 100%);
+  border-color: rgba(212, 175, 55, 0.25);
+}
+.hero-title {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: var(--accent-color);
+  margin-bottom: 12px;
+}
+.hero-subtitle {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: var(--text-color);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 8px;
+}
+
+/* Prayer Selection Grid */
+.prayer-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+.btn-prayer {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1.5px solid rgba(255, 255, 255, 0.06);
+  border-radius: 18px;
+  padding: 16px;
+  color: var(--text-color);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+}
+.btn-prayer:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+.btn-prayer.active {
+  background: var(--primary-glow);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+}
+.prayer-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.prayer-count {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+.btn-prayer.active .prayer-count {
+  color: var(--accent-color);
+}
+
+/* Instruction Steps */
+.info-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.instruction-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.step-num {
+  background: var(--accent-color);
+  color: var(--bg-color-1);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-weight: 900;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.instruction-step p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* Buttons */
+.btn {
+  border: none;
+  border-radius: 20px;
+  padding: 18px 24px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-color) 0%, #b89326 100%);
+  color: #050a06;
+}
+.btn-primary:active {
+  transform: scale(0.98);
+}
+.btn-primary.disabled, .btn-primary:disabled {
+  background: #3e3c35;
+  color: #6c6b66;
+  border-color: transparent;
+  cursor: not-allowed;
+  box-shadow: none !important;
+}
+.btn-glow {
+  box-shadow: 0 4px 20px rgba(212, 175, 55, 0.3);
+}
+.btn-glow:not(:disabled):hover {
+  box-shadow: 0 4px 25px rgba(212, 175, 55, 0.5);
+}
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-color);
+}
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.btn-back {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1rem;
+  cursor: pointer;
+  align-self: flex-start;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+}
+html[dir="rtl"] .back-arrow {
+  transform: rotate(180deg);
+}
+
+/* Camera Setup View */
+.camera-preview-wrapper {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 30px auto;
+}
+.camera-circle {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--accent-color);
+  box-shadow: 0 0 30px var(--accent-glow);
+  position: relative;
+}
+.camera-circle video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* Mirror camera stream */
+}
+.scanner-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(180deg, transparent, var(--accent-color));
+  animation: scan 3s infinite linear;
+  box-shadow: 0 0 10px var(--accent-color);
+  pointer-events: none;
+}
+@keyframes scan {
+  0% { top: 0%; }
+  50% { top: 100%; }
+  100% { top: 0%; }
+}
+.calibration-status-badge {
+  position: absolute;
+  bottom: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0d2618;
+  border: 1px solid var(--accent-color);
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #00FF66;
+}
+.status-dot.pulsing {
+  animation: pulse 1.5s infinite ease-in-out;
+  background: var(--accent-color);
+}
+@keyframes pulse {
+  0% { transform: scale(0.9); opacity: 0.5; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.5; }
+}
+
+/* Lux Gauge styling */
+.lux-gauge-container {
+  margin: 35px 0 25px 0;
+  text-align: initial;
+}
+.lux-gauge-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--text-muted);
+}
+.lux-bar-bg {
+  width: 100%;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+#lux-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #b83321 0%, var(--accent-color) 50%, #00FF66 100%);
+  border-radius: 6px;
+  transition: width 0.1s ease-out;
+}
+#lux-threshold-marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 30%; /* Default threshold position */
+  width: 2px;
+  background-color: var(--text-color);
+  box-shadow: 0 0 5px #fff;
+  z-index: 3;
+}
+html[dir="rtl"] #lux-threshold-marker {
+  left: auto;
+  right: 30%;
+}
+.lux-gauge-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.action-buttons-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+/* Active Prayer View */
+.prayer-status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+.badge {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 8px 18px;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+.badge.bg-gold {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.15);
+}
+
+.prayer-counter-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0;
+}
+.counter-label {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+}
+.counter-number {
+  font-size: 13rem;
+  font-weight: 900;
+  color: var(--text-color);
+  line-height: 1.0;
+  text-shadow: 0 0 40px rgba(255, 255, 255, 0.15), 0 0 80px rgba(212, 175, 55, 0.1);
+  font-family: var(--font-en);
+  margin: 10px 0;
+}
+.counter-rakah-name {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--accent-color);
+}
+
+/* Sujud Indicator Nodes */
+.sujud-indicator-container {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin: 40px 0;
+}
+.sujud-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.sujud-dot {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: transparent;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.sujud-step.active .sujud-dot {
+  border-color: var(--accent-color);
+  background: var(--primary-glow);
+  color: var(--accent-color);
+  box-shadow: 0 0 20px var(--accent-glow);
+  transform: scale(1.1);
+}
+.sujud-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+.sujud-step.active .sujud-label {
+  color: var(--text-color);
+  font-weight: 700;
+}
+
+.prayer-status-tip {
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 30px;
+  animation: slowPulse 2s infinite ease-in-out;
+}
+@keyframes slowPulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+/* Long-Press Exit button (Safety click) */
+.exit-control-wrapper {
+  margin-top: auto;
+}
+.btn-hold-exit {
+  width: 100%;
+  position: relative;
+  background: rgba(255, 59, 48, 0.1);
+  border: 1.5px solid rgba(255, 59, 48, 0.3);
+  color: #FF3B30;
+  border-radius: 20px;
+  padding: 18px 24px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  transition: transform 0.1s ease;
+}
+.btn-hold-exit:active {
+  transform: scale(0.99);
+}
+.btn-hold-progress {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 0%;
+  background: rgba(255, 59, 48, 0.25);
+  transition: width 0.1s linear;
+}
+html[dir="rtl"] .btn-hold-progress {
+  left: auto;
+  right: 0;
+}
+.btn-hold-text {
+  position: relative;
+  z-index: 2;
+}
+
+/* Completed & Tasbeeh screen */
+.header-completed {
+  padding: 30px 20px;
+}
+
+.complete-title {
+  font-size: 1.7rem;
+  color: var(--accent-color);
+  font-weight: 900;
+}
+.complete-subtitle {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin-top: 6px;
+}
+
+.stats-card-completed {
+  padding: 20px;
+}
+.stats-row {
+  display: flex;
+  justify-content: space-around;
+}
+.stat-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-color);
+}
+
+/* Tasbeeh counter card */
+.tasbeeh-card {
+  padding: 20px;
+  background: linear-gradient(180deg, rgba(15, 40, 25, 0.3) 0%, rgba(10, 26, 15, 0.5) 100%);
+  border-color: rgba(212, 175, 55, 0.2);
+}
+.tasbeeh-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.tasbeeh-header h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent-color);
+}
+.btn-tasbeeh-reset {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  text-decoration: underline;
+  font-family: inherit;
+}
+.tasbeeh-carousel {
+  text-align: center;
+  padding: 10px 0;
+  min-height: 40px;
+}
+#tasbeeh-text {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+.tasbeeh-tap-area {
+  width: 100%;
+  margin-top: 15px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 2px dashed rgba(212, 175, 55, 0.25);
+  border-radius: 20px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.tasbeeh-tap-area:active {
+  background: var(--primary-glow);
+  border-color: var(--accent-color);
+  transform: scale(0.98);
+}
+.tasbeeh-counter-number {
+  font-size: 3rem;
+  font-weight: 900;
+  color: var(--text-color);
+  font-family: var(--font-en);
+}
+.tasbeeh-tap-tip {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Toast Notifications */
+#toast-container {
+  position: fixed;
+  top: calc(20px + var(--safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  width: 90%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+.toast {
+  background: rgba(18, 18, 18, 0.9);
+  color: var(--text-color);
+  border-left: 4px solid var(--accent-color);
+  padding: 14px 20px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: toastIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, toastOut 0.3s ease-in 3.7s forwards;
+  pointer-events: all;
+  border-right: none;
+}
+html[dir="rtl"] .toast {
+  border-left: none;
+  border-right: 4px solid var(--accent-color);
+}
+.toast.toast-error {
+  border-color: #FF3B30;
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes toastOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Hidden Utility & Debug Panel Visibility Control */
+.hidden {
+  display: none !important;
+}
+
+#debug-panel {
+  display: none !important;
+}
+
+/* Middle Tashahhud Screen Overlay Styling */
+#tashahhud-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(5, 10, 6, 0.95);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  animation: fadeIn 0.3s ease-out;
+}
+.tashahhud-card-content {
+  width: 100%;
+  max-width: 380px;
+  background: rgba(15, 40, 25, 0.4);
+  border: 1.5px solid var(--accent-color);
+  padding: 30px 20px;
+  box-shadow: 0 0 25px rgba(212, 175, 55, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.tashahhud-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--accent-color);
+  margin-top: 15px;
+  margin-bottom: 8px;
+}
+.tashahhud-desc {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  text-align: center;
+  line-height: 1.5;
+}
+.tashahhud-timer {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 25px;
+}
+#tashahhud-countdown {
+  font-size: 4rem;
+  font-weight: 900;
+  color: var(--text-color);
+  font-family: var(--font-en);
+  line-height: 1;
+}
+.tashahhud-sec-unit {
+  font-size: 1.1rem;
+  color: var(--accent-color);
+  font-weight: 700;
+}
+
+/* Sequential Athkar Layout Fixing */
+#view-athkar {
+  position: relative;
+  height: 100%;
+  min-height: 100%;
+}
+.athkar-body-card {
+  height: calc(60% - 130px);
+  overflow-y: auto;
+  margin-bottom: 0 !important;
+}
+#btn-tap-athkar.tasbeeh-tap-area {
+  position: absolute;
+  top: 60%;
+  left: 0;
+  right: 0;
+  height: calc(40% - 20px);
+  margin-top: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+}
+
