@@ -21,7 +21,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
   
   <!-- CSS Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=5">
+  <link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
 
@@ -50,7 +50,6 @@
     <!-- 1. Home / Settings View -->
     <section id="view-home" class="app-view active">
       <div class="card glass-card hero-card">
-        <h1 class="hero-title" data-i18n="appTitle">عداد الركعات الذكي</h1>
         <p class="hero-subtitle" data-i18n="appDesc">ضع الهاتف على سجادة الصلاة وسيقوم التطبيق بعدّ الركعات تلقائياً باستخدام الكاميرا الأمامية كمستشعر للتقارب والظل.</p>
       </div>
 
@@ -214,6 +213,12 @@
         <span id="athkar-counter-disp" class="tasbeeh-counter-number">0</span>
         <span id="athkar-target" class="tasbeeh-tap-tip" style="color: var(--accent-color);">العدد المطلوب: 3 (اضغط للتسبيح)</span>
       </button>
+
+      <div class="action-buttons-stack" style="margin-top: 0; width: 100%;">
+        <button id="btn-athkar-back-home" class="btn btn-secondary font-bold" style="width: 100%;">
+          🏠 <span data-i18n="backHome">العودة للرئيسية</span>
+        </button>
+      </div>
     </section>
 
     <!-- 4. Prayer Completion & Tasbeeh Screen -->
@@ -263,6 +268,6 @@
 
   </main>
 
-  <script src="app.js?v=5"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>
