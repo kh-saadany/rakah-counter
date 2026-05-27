@@ -21,7 +21,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
   
   <!-- CSS Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=8">
+  <link rel="stylesheet" href="style.css?v=9">
 </head>
 <body>
 
@@ -221,53 +221,28 @@
       </div>
     </section>
 
-    <!-- 4. Prayer Completion & Tasbeeh Screen -->
-    <section id="view-completed" class="app-view">
-      <div class="card glass-card text-center header-completed">
+    <!-- 4. Prayer Completion Screen -->
+    <section id="view-completed" class="app-view view-completed-centered">
+      <div class="complete-center-content">
+        <div class="complete-glow-icon">🤲</div>
         <h1 class="complete-title" data-i18n="accept">تقبل الله</h1>
         <p class="complete-subtitle" data-i18n="acceptDesc">الحمد لله الذي بنعمته تتم الصالحات.</p>
       </div>
-
-      <!-- Stats Summary Card -->
-      <div class="card glass-card stats-card-completed">
-        <div class="stats-row">
-          <div class="stat-col">
-            <span class="stat-label" data-i18n="totalRakahs">عدد الركعات</span>
-            <span id="summary-rakahs" class="stat-value">2</span>
-          </div>
-          <div class="stat-col">
-            <span class="stat-label" data-i18n="duration">مدة الصلاة</span>
-            <span id="summary-duration" class="stat-value">03:15</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Interactive Tasbeeh Counter Card -->
-      <div class="card glass-card tasbeeh-card">
-        <div class="tasbeeh-header">
-          <h3 data-i18n="tasbeehTitle">الأذكار والتسبيح</h3>
-          <button id="btn-reset-tasbeeh" class="btn-tasbeeh-reset" title="إعادة التصفير" data-i18n="reset">إعادة ضبط</button>
-        </div>
-        
-        <div class="tasbeeh-carousel">
-          <span id="tasbeeh-text" data-i18n="subhanallah">سُبْحَانَ اللَّه</span>
-        </div>
-
-        <button id="btn-tap-tasbeeh" class="tasbeeh-tap-area">
-          <span id="tasbeeh-count" class="tasbeeh-counter-number">0</span>
-          <span class="tasbeeh-tap-tip" data-i18n="tapToCount">اضغط هنا للتسبيح</span>
-        </button>
-      </div>
-
-      <div class="action-buttons-stack">
+      <div class="complete-back-btn-wrapper">
         <button id="btn-back-home" class="btn btn-primary btn-glow">
           🏠 <span data-i18n="backHome">العودة للرئيسية</span>
         </button>
       </div>
+      <!-- Hidden elements to keep JS working -->
+      <span id="summary-rakahs" class="hidden">2</span>
+      <span id="summary-duration" class="hidden">03:15</span>
+      <button id="btn-reset-tasbeeh" class="hidden"></button>
+      <span id="tasbeeh-text" class="hidden"></span>
+      <button id="btn-tap-tasbeeh" class="hidden"><span id="tasbeeh-count">0</span></button>
     </section>
 
   </main>
 
-  <script src="app.js?v=8"></script>
+  <script src="app.js?v=9"></script>
 </body>
 </html>
