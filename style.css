@@ -153,6 +153,12 @@ html[lang="en"] body {
 .app-view.active::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
 }
+
+/* Home view: spread items evenly to fill full screen height */
+#view-home.active {
+  justify-content: space-between;
+  overflow-y: hidden;
+}
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
@@ -604,9 +610,28 @@ html[dir="rtl"] .btn-hold-progress {
   z-index: 2;
 }
 
-/* Completed & Tasbeeh screen */
-.header-completed {
-  padding: 30px 20px;
+/* Completed Screen (simplified - full height centered) */
+.view-completed-centered {
+  justify-content: space-between !important;
+}
+.complete-center-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 20px;
+  gap: 16px;
+}
+.complete-glow-icon {
+  font-size: 5rem;
+  filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.6));
+  animation: slowPulse 2.5s infinite ease-in-out;
+}
+.complete-back-btn-wrapper {
+  padding: 0 0 8px 0;
+  width: 100%;
 }
 
 .complete-title {
