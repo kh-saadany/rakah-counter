@@ -54,18 +54,16 @@ html[lang="en"] body {
 #app-container {
   width: 100%;
   max-width: 480px; /* Target mobile screens */
-  height: 100%;
-  max-height: 100vh;
-  max-height: -webkit-fill-available;
+  height: 100vh;
+  height: 100dvh;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   padding: calc(8px + var(--safe-area-inset-top)) 16px calc(10px + var(--safe-area-inset-bottom)) 16px;
   position: relative;
   z-index: 2;
-  overflow: visible;
+  overflow: hidden;
   box-sizing: border-box;
-  min-height: 0;
 }
 
 /* Sujud Dark Overlay (Dims Screen completely during Sujud) */
@@ -156,8 +154,7 @@ html[lang="en"] body {
 
 /* Home view: push buttons to bottom, filling full screen height */
 #view-home.active {
-  overflow-y: hidden;
-  justify-content: flex-start;
+  overflow-y: auto;
 }
 /* Push the start button (and everything after) to the bottom */
 #view-home #btn-start {
