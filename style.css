@@ -63,8 +63,9 @@ html[lang="en"] body {
   padding: calc(16px + var(--safe-area-inset-top)) 20px calc(24px + var(--safe-area-inset-bottom)) 20px;
   position: relative;
   z-index: 2;
-  overflow: hidden;
+  overflow: visible;
   box-sizing: border-box;
+  min-height: 0;
 }
 
 /* Sujud Dark Overlay (Dims Screen completely during Sujud) */
@@ -130,25 +131,24 @@ html[lang="en"] body {
 
 /* Views Management */
 .app-view {
-  display: flex;
+  display: none;
   flex-direction: column;
   flex: 1;
   min-height: 0;
-  position: absolute;
-  left: -9999px;
-  width: 100%;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.4s ease-out;
 }
 .app-view.active {
-  position: relative;
-  left: 0;
+  display: flex;
+  flex: 1;
+  min-height: 0;
   opacity: 1;
   pointer-events: all;
   overflow-y: auto;
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
+  animation: fadeIn 0.35s ease-out forwards;
 }
 .app-view.active::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
