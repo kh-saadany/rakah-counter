@@ -1,9 +1,9 @@
-const CACHE_NAME = "rakah-counter-v14";
+const CACHE_NAME = "rakah-counter-v15";
 const ASSETS_TO_CACHE = [
   "./",
   "index.html",
-  "style.css?v=4",
-  "app.js?v=4",
+  "style.css?v=5",
+  "app.js?v=5",
   "manifest.json"
 ];
 
