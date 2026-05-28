@@ -494,7 +494,6 @@ html[lang="en"] body {
   color: var(--text-muted);
   margin-bottom: 12px;
   min-height: 20px;
-  animation: pulse-glow 2.5s infinite ease-in-out;
 }
 
 @keyframes pulse-glow {
