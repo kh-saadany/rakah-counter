@@ -1216,9 +1216,6 @@ function exitPrayer(isAborted) {
     // Reset tasbeeh
     resetTasbeeh();
     
-    // Render logs for completed view
-    renderPrayerLogs();
-    
     switchView("view-completed");
   }
 }
@@ -1308,6 +1305,9 @@ function onPrayerFinished() {
   
   // Show "أذكار ما بعد الصلاة" button
   elements.btnShowAthkar.classList.remove("hidden");
+  
+  // Render logs directly after last Rakah is completed, before Athkar
+  renderPrayerLogs();
 }
 
 // --- Sequential Athkar Flow ---
@@ -1446,9 +1446,6 @@ function completeAthkarFlow() {
   
   // Reset tasbeeh count on the final screen
   resetTasbeeh();
-  
-  // Render logs
-  renderPrayerLogs();
   
   switchView("view-completed");
 }
