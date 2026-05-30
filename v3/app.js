@@ -58,7 +58,14 @@ const translations = {
     btnShowAthkar: "📿 أذكار ما بعد الصلاة",
     middleTashahhud: "التشهد الأوسط",
     tashahhudDesc: "جلسة التشهد الأوسط بعد الركعة الثانية.",
-    seconds: "ثانية"
+    seconds: "ثانية",
+    logTitle: "📊 سجل حركة الصلاة (بيانات الاستشعار)",
+    logTime: "الوقت (ث)",
+    logMovement: "الحركة",
+    logBrightness: "السطوع",
+    logBaseline: "المعيار",
+    btnCopyCSV: "📋 نسخ CSV",
+    btnShare: "📤 مشاركة"
   },
   en: {
     logoText: "Rakah Counter",
@@ -118,7 +125,14 @@ const translations = {
     btnShowAthkar: "📿 Post-Prayer Athkar",
     middleTashahhud: "Middle Tashahhud",
     tashahhudDesc: "Sitting for Tashahhud after the second Rakah.",
-    seconds: "seconds"
+    seconds: "seconds",
+    logTitle: "📊 Prayer Movement Log (Sensor Data)",
+    logTime: "Time (s)",
+    logMovement: "Movement",
+    logBrightness: "Brightness",
+    logBaseline: "Baseline",
+    btnCopyCSV: "📋 Copy CSV",
+    btnShare: "📤 Share"
   }
 };
 
