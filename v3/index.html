@@ -21,7 +21,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
   
   <!-- Stylesheet with Cache Busting -->
-  <link rel="stylesheet" href="style.css?v=31">
+  <link rel="stylesheet" href="style.css?v=32">
 </head>
 <body>
 
@@ -159,6 +159,30 @@
 
       <!-- Ergonmic Pause & Post-Prayer control stack -->
       <div class="exit-control-wrapper">
+        <!-- Sensor Data Log Card -->
+        <div id="log-card" class="glass-card hidden" style="width: 100%; margin-bottom: 15px; max-height: 200px; display: flex; flex-direction: column;">
+          <h3 style="font-size: 0.9rem; color: var(--color-gold); margin-bottom: 8px; text-align: center;">📊 سجل حركة الصلاة (بيانات الاستشعار)</h3>
+          <div style="flex: 1; overflow-y: auto; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); border-radius: 8px;">
+            <table style="width: 100%; font-size: 0.72rem; border-collapse: collapse; text-align: center;">
+              <thead>
+                <tr style="border-bottom: 1px solid rgba(212, 175, 55, 0.3); color: var(--text-muted); background: rgba(0,0,0,0.2); position: sticky; top: 0; backdrop-filter: blur(5px);">
+                  <th style="padding: 6px 4px;">الوقت (ث)</th>
+                  <th style="padding: 6px 4px;">الحركة</th>
+                  <th style="padding: 6px 4px;">السطوع</th>
+                  <th style="padding: 6px 4px;">المعيار</th>
+                </tr>
+              </thead>
+              <tbody id="log-table-body">
+                <!-- Logs will be inserted here dynamically -->
+              </tbody>
+            </table>
+          </div>
+          <div style="display: flex; gap: 8px; justify-content: center; flex-shrink: 0;">
+            <button id="btn-copy-log" class="btn-icon" style="font-size: 0.75rem; padding: 5px 12px;">📋 نسخ CSV</button>
+            <button id="btn-share-log" class="btn-icon" style="font-size: 0.75rem; padding: 5px 12px;">📤 مشاركة</button>
+          </div>
+        </div>
+
         <button id="btn-show-athkar" class="btn btn-primary font-bold hidden" data-i18n="btnShowAthkar">
           📿 أذكار ما بعد الصلاة
         </button>
@@ -225,30 +249,6 @@
         <p class="complete-subtitle" data-i18n="acceptDesc">الحمد لله الذي بنعمته تتم الصالحات.</p>
       </div>
 
-      <!-- Sensor Data Log Card -->
-      <div id="log-card" class="glass-card hidden" style="width: 100%; margin-bottom: 15px; max-height: 220px; display: flex; flex-direction: column;">
-        <h3 style="font-size: 0.9rem; color: var(--color-gold); margin-bottom: 8px; text-align: center;">📊 سجل حركة الصلاة (بيانات الاستشعار)</h3>
-        <div style="flex: 1; overflow-y: auto; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); border-radius: 8px;">
-          <table style="width: 100%; font-size: 0.72rem; border-collapse: collapse; text-align: center;">
-            <thead>
-              <tr style="border-bottom: 1px solid rgba(212, 175, 55, 0.3); color: var(--text-muted); background: rgba(0,0,0,0.2); position: sticky; top: 0; backdrop-filter: blur(5px);">
-                <th style="padding: 6px 4px;">الوقت (ث)</th>
-                <th style="padding: 6px 4px;">الحركة</th>
-                <th style="padding: 6px 4px;">السطوع</th>
-                <th style="padding: 6px 4px;">المعيار</th>
-              </tr>
-            </thead>
-            <tbody id="log-table-body">
-              <!-- Logs will be inserted here dynamically -->
-            </tbody>
-          </table>
-        </div>
-        <div style="display: flex; gap: 8px; justify-content: center; flex-shrink: 0;">
-          <button id="btn-copy-log" class="btn-icon" style="font-size: 0.75rem; padding: 5px 12px;">📋 نسخ CSV</button>
-          <button id="btn-share-log" class="btn-icon" style="font-size: 0.75rem; padding: 5px 12px;">📤 مشاركة</button>
-        </div>
-      </div>
-
       <!-- Back home button -->
       <div class="complete-back-btn-wrapper">
         <button id="btn-back-home" class="btn btn-primary">
@@ -270,6 +270,6 @@
   </main>
 
   <!-- Application Script with Cache Busting -->
-  <script src="app.js?v=31"></script>
+  <script src="app.js?v=32"></script>
 </body>
 </html>
