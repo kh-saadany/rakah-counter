@@ -50,6 +50,10 @@
   -webkit-user-drag: none;
 }
 
+html {
+  font-size: 112.5%; /* Globals font size increase (rem unit scale) */
+}
+
 html, body {
   height: 100%;
   width: 100%;
@@ -286,14 +290,12 @@ html[lang="en"] body {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 16px;
-  padding: 12px 6px;
+  padding: 16px 10px;
   color: var(--text-primary);
   cursor: pointer;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 5px;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   text-align: center;
   font-family: inherit;
@@ -422,7 +424,7 @@ html[lang="en"] body {
 }
 
 .counter-number {
-  font-size: 10rem;
+  font-size: 16rem; /* Scaled from 10rem to 16rem (160% increase) */
   font-weight: 800;
   color: var(--text-primary);
   line-height: 0.9;
