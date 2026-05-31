@@ -1,0 +1,19 @@
+{
+  "short_name": "متابعة الدواء",
+  "name": "متابعة الدواء - تذكير ومخزون الأدوية ذكي",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2921/2921822.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "./index.html",
+  "background_color": "#0d1b2a",
+  "theme_color": "#1b4965",
+  "display": "standalone",
+  "orientation": "portrait",
+  "lang": "ar",
+  "dir": "rtl"
+}
