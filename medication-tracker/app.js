@@ -925,7 +925,14 @@ class MedicationTracker {
     const triggerRow = document.getElementById('ocr-trigger-ui');
     const fileUI = document.getElementById('ocr-file-ui');
 
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+    // Request high-definition resolution (1080p or 720p) for better OCR accuracy
+    navigator.mediaDevices.getUserMedia({ 
+      video: { 
+        facingMode: 'environment',
+        width: { ideal: 1920 },
+        height: { ideal: 1080 }
+      } 
+    })
       .then(stream => {
         this.scannerStream = stream;
         video.srcObject = stream;
@@ -934,9 +941,21 @@ class MedicationTracker {
         fileUI.classList.add('hidden');
       })
       .catch(err => {
-        console.warn('Camera blocked or not available. Displaying file picker fallback.', err);
-        alert('يتعذر فتح الكاميرا التلقائية، يمكنك رفع صورة علبة الدواء من الاستوديو.');
-        fileUI.classList.remove('hidden');
+        console.warn('Camera blocked or high-res not supported, falling back to default constraints.', err);
+        // Fallback to default webcam if high-res fails
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+          .then(stream => {
+            this.scannerStream = stream;
+            video.srcObject = stream;
+            view.classList.remove('hidden');
+            triggerRow.classList.add('hidden');
+            fileUI.classList.add('hidden');
+          })
+          .catch(e => {
+            console.warn('Camera blocked completely.', e);
+            alert('يتعذر فتح الكاميرا التلقائية، يمكنك رفع صورة علبة الدواء من الاستوديو.');
+            fileUI.classList.remove('hidden');
+          });
       });
   }
 
@@ -953,20 +972,50 @@ class MedicationTracker {
   captureScannerImage() {
     const video = document.getElementById('scanner-video');
     const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth || 640;
-    canvas.height = video.videoHeight || 480;
+    canvas.width = video.videoWidth || 1280;
+    canvas.height = video.videoHeight || 720;
     
     const ctx = canvas.getContext('2d');
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     
-    // Convert to compressed jpeg dataUrl to save IndexedDB space
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+    // 1. Save the clean color image for visual user reference in the database
+    const colorDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+    
+    // 2. Perform Grayscale and Contrast Preprocessing on the canvas for OCR optimization
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imgData.data;
+    
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i];
+      const g = data[i+1];
+      const b = data[i+2];
+      
+      // Grayscale conversion using standard luminance weights
+      let gray = 0.299 * r + 0.587 * g + 0.114 * b;
+      
+      // Contrast Enhancement & Sigmoid-like thresholding
+      let factor = 1.8;
+      let val = factor * (gray - 128) + 128;
+      val = Math.max(0, Math.min(255, val)); // Clamp to 0-255
+      
+      // Dynamic local binarization threshold
+      let finalVal = val > 120 ? 255 : 0;
+      
+      data[i] = finalVal;
+      data[i+1] = finalVal;
+      data[i+2] = finalVal;
+    }
+    ctx.putImageData(imgData, 0, 0);
+    
+    // 3. Generate a high-contrast binary data URL to send to the OCR engine
+    const ocrDataUrl = canvas.toDataURL('image/jpeg', 0.9);
     
     this.stopCameraScanner();
-    this.setCapturedPhoto(dataUrl);
+    // Save the original color image in the UI/database
+    this.setCapturedPhoto(colorDataUrl);
     
-    // Trigger OCR Process
-    this.extractTextFromImage(dataUrl);
+    // Trigger OCR Process with the optimized black-and-white high-contrast image
+    this.extractTextFromImage(ocrDataUrl);
   }
 
   handleImageUpload(e) {
