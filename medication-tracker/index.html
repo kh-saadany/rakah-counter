@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>متابعة الدواء | Medication Tracker</title>
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="تطبيق ذكي وبسيط لمتابعة مواعيد تناول الأدوية وتنبيهك في الوقت المناسب مع ميزة مسح العلبة وحساب المخزون المتبقي.">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f172a">
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+  <!-- OCR Library Tesseract.js (Optional but loaded via CDN for scan feature) -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js" defer></script>
+</head>
+<body>
+  
+  <!-- App Container (Mobile Shell) -->
+  <div class="app-shell">
+    
+    <!-- Top Status Bar & Header -->
+    <header class="app-header">
+      <div class="header-logo">
+        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"></path>
+          <path d="m8.5 8.5 7 7"></path>
+        </svg>
+        <span class="logo-text">مُتابعة الدواء</span>
+      </div>
+      <div id="quick-next-alert" class="next-alert-badge">
+        <span class="pulse-dot"></span>
+        <span id="next-alert-text">لا توجد جرعات قادمة</span>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="app-content">
+      
+      <!-- Tab 1: Home/Today View -->
+      <section id="tab-home" class="tab-view active">
+        <div class="welcome-card">
+          <div class="welcome-text">
+            <h2>مرحباً بك! 👋</h2>
+            <p>دعنا نلتزم بجرعات اليوم لنحافظ على صحتك.</p>
+          </div>
+          <div class="adherence-gauge">
+            <svg class="progress-ring" width="70" height="70">
+              <circle class="progress-ring__circle-bg" stroke="rgba(255,255,255,0.1)" stroke-width="6" fill="transparent" r="28" cx="35" cy="35"/>
+              <circle id="adherence-circle" class="progress-ring__circle" stroke="#10b981" stroke-width="6" fill="transparent" r="28" cx="35" cy="35"/>
+            </svg>
+            <div id="adherence-percentage" class="gauge-value">0%</div>
+          </div>
+        </div>
+
+        <div class="today-stats-grid">
+          <div class="stat-box">
+            <span class="stat-num" id="stat-total">0</span>
+            <span class="stat-lbl">إجمالي جرعات اليوم</span>
+          </div>
+          <div class="stat-box completed">
+            <span class="stat-num" id="stat-taken">0</span>
+            <span class="stat-lbl">الجرعات المتناولة</span>
+          </div>
+          <div class="stat-box pending">
+            <span class="stat-num" id="stat-pending">0</span>
+            <span class="stat-lbl">الجرعات المتبقية</span>
+          </div>
+        </div>
+
+        <div class="section-title-row">
+          <h3>جدول جرعات اليوم 📅</h3>
+          <span id="current-date-text" class="date-text">اليوم</span>
+        </div>
+
+        <div id="today-timeline" class="timeline-list">
+          <!-- Empty State -->
+          <div class="empty-state">
+            <div class="empty-icon">💊</div>
+            <p>لا توجد أدوية مجدولة اليوم.</p>
+            <button class="btn btn-primary btn-sm" onclick="app.switchTab('meds'); app.openAddModal();">إضافة دواء جديد</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tab 2: Medications Manager -->
+      <section id="tab-meds" class="tab-view">
+        <div class="meds-header-row">
+          <h3>قائمة الأدوية الخاصة بك</h3>
+          <button class="btn btn-primary" onclick="app.openAddModal()">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            إضافة دواء
+          </button>
+        </div>
+
+        <div id="medications-grid" class="medications-list-grid">
+          <!-- Empty state -->
+          <div class="empty-state">
+            <div class="empty-icon">📦</div>
+            <p>لم تقم بإضافة أي أدوية بعد.</p>
+            <button class="btn btn-primary btn-sm" onclick="app.openAddModal()">إضافة أول دواء الآن</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tab 3: History & Reports -->
+      <section id="tab-history" class="tab-view">
+        <div class="card shadow-md">
+          <h3>معدل الالتزام التاريخي 📊</h3>
+          <div class="adherence-chart-container">
+            <div id="chart-bars" class="chart-bars-flex">
+              <!-- Dynamically populated chart bars -->
+            </div>
+          </div>
+          <div class="chart-legend">
+            <span>السبت</span>
+            <span>الأحد</span>
+            <span>الاثنين</span>
+            <span>الثلاثاء</span>
+            <span>الأربعاء</span>
+            <span>الخميس</span>
+            <span>الجمعة</span>
+          </div>
+        </div>
+
+        <div class="section-title-row mt-6">
+          <h3>سجل النشاط الأخير 📝</h3>
+          <button class="btn-clear-history" onclick="app.clearHistory()">مسح السجل</button>
+        </div>
+
+        <div id="history-log-list" class="history-list">
+          <div class="empty-state">
+            <div class="empty-icon">📁</div>
+            <p>السجل فارغ. سيظهر هنا تاريخ تناولك للأدوية.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tab 4: Instructions & Help -->
+      <section id="tab-guide" class="tab-view">
+        <div class="guide-container">
+          <h3>ضمان وصول التنبيهات على هاتفك 🔔</h3>
+          <p class="guide-intro">تعمل أنظمة تشغيل الهواتف على إيقاف التطبيقات التي تعمل في الخلفية لتوفير البطارية. لضمان عدم تفويت أي جرعة دواء، يرجى اتباع التعليمات التالية:</p>
+
+          <div class="accordion">
+            <div class="accordion-item">
+              <input type="checkbox" id="accordion-android" checked>
+              <label class="accordion-header" for="accordion-android">
+                <span>لهواتف أندرويد (Android)</span>
+                <span class="chevron"></span>
+              </label>
+              <div class="accordion-content">
+                <ol>
+                  <li>اضغط مطولاً على أيقونة التطبيق (بعد تثبيته من المتصفح كـ PWA).</li>
+                  <li>اختر **معلومات التطبيق (App Info)**.</li>
+                  <li>ابحث عن خيار **البطارية (Battery)** أو **توفير الطاقة (Battery Saver)**.</li>
+                  <li>قم بتغيير الإعداد من "محسن (Optimized)" إلى **"غير مقيد (Unrestricted / No restrictions)"**.</li>
+                  <li>تأكد من السماح للتطبيق بإرسال **الإشعارات (Notifications)** والعمل في الخلفية.</li>
+                </ol>
+                <div class="guide-tip">
+                  <strong>نصيحة:</strong> يفضل فتح التطبيق مرة واحدة يومياً لتحديث الجدولة التلقائية في الخلفية.
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <input type="checkbox" id="accordion-ios">
+              <label class="accordion-header" for="accordion-ios">
+                <span>لهواتف آيفون (iOS)</span>
+                <span class="chevron"></span>
+              </label>
+              <div class="accordion-content">
+                <ol>
+                  <li>افتح التطبيق عبر متصفح **Safari** حصراً.</li>
+                  <li>اضغط على زر **مشاركة (Share)** في الشريط السفلي.</li>
+                  <li>اختر **"إضافة إلى الشاشة الرئيسية (Add to Home Screen)"**.</li>
+                  <li>افتح التطبيق من شاشتك الرئيسية، وسيطلب منك تفعيل **الإشعارات**، اضغط على **سماح (Allow)**.</li>
+                  <li>تأكد من عدم تفعيل وضع "توفير الطاقة المنخفض (Low Power Mode)" لضمان كفاءة التنبيهات.</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+
+          <div class="card permission-card mt-6">
+            <h4>صلاحية الإشعارات الحالية</h4>
+            <div class="permission-status-row">
+              <span id="notification-status-badge" class="badge badge-warning">غير محدد</span>
+              <button id="btn-request-notification" class="btn btn-outline btn-sm" onclick="app.requestNotificationPermission()">طلب صلاحية التنبيهات</button>
+            </div>
+            <p class="text-xs text-muted mt-2">يحتاج التطبيق لصلاحية الإشعارات من نظام التشغيل ليتمكن من تذكيرك بمواعيد الأدوية.</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="app-nav">
+      <button class="nav-item active" onclick="app.switchTab('home')" data-tab="home">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        <span>اليوم</span>
+      </button>
+      <button class="nav-item" onclick="app.switchTab('meds')" data-tab="meds">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+        <span>أدويتي</span>
+      </button>
+      <button class="nav-item" onclick="app.switchTab('history')" data-tab="history">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        <span>السجل</span>
+      </button>
+      <button class="nav-item" onclick="app.switchTab('guide')" data-tab="guide">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <span>الإرشادات</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- Add/Edit Medication Modal -->
+  <div id="medication-modal" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="modal-title">إضافة دواء جديد</h3>
+        <button class="btn-close-modal" onclick="app.closeAddModal()">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <form id="medication-form" onsubmit="app.saveMedication(event)">
+          <input type="hidden" id="med-id">
+
+          <!-- OCR / Scanning Camera Option -->
+          <div class="ocr-section-card">
+            <div class="ocr-trigger-row" id="ocr-trigger-ui">
+              <div class="ocr-text-col">
+                <h5>📷 تعبئة سريعة عبر التصوير</h5>
+                <p>صور علبة الدواء وسنقوم باستخراج الاسم تلقائياً.</p>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="app.startCameraScanner()">فتح الكاميرا</button>
+            </div>
+
+            <!-- OCR Camera Overlay Scanner -->
+            <div class="camera-scanner-container hidden" id="camera-scanner-view">
+              <video id="scanner-video" autoplay playsinline></video>
+              <div class="scanner-frame">
+                <div class="scan-laser"></div>
+              </div>
+              <div class="scanner-controls">
+                <button type="button" class="btn btn-success btn-sm" onclick="app.captureScannerImage()">التقاط الصورة 📸</button>
+                <button type="button" class="btn btn-outline btn-sm btn-danger" onclick="app.stopCameraScanner()">إلغاء</button>
+              </div>
+            </div>
+            
+            <!-- File input fallback -->
+            <div class="ocr-file-upload hidden" id="ocr-file-ui">
+              <label for="ocr-image-file" class="btn btn-outline btn-sm w-full text-center">أو اختر صورة من المعرض 🖼️</label>
+              <input type="file" id="ocr-image-file" accept="image/*" onchange="app.handleImageUpload(event)" style="display: none;">
+            </div>
+
+            <!-- OCR Loading state -->
+            <div class="ocr-loading-overlay hidden" id="ocr-loading-view">
+              <div class="spinner"></div>
+              <p>جاري استخراج اسم الدواء والبيانات...</p>
+            </div>
+            
+            <!-- Visual confirmation of captured photo -->
+            <div class="captured-preview-container hidden" id="captured-preview-view">
+              <img id="captured-preview-img" src="" alt="صورة العلبة">
+              <div class="preview-info">
+                <span>تم التقاط صورة العلبة كمرجع بصري 🖼️</span>
+                <button type="button" class="btn-remove-photo" onclick="app.removeCapturedPhoto()">حذف الصورة</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Medicine Details Form -->
+          <div class="form-group mt-4">
+            <label for="med-name">اسم الدواء *</label>
+            <input type="text" id="med-name" required placeholder="مثال: بنادول، أوميبرازول...">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="med-dosage">الجرعة *</label>
+              <input type="text" id="med-dosage" required placeholder="مثال: حبة واحدة، 5 مل...">
+            </div>
+            <div class="form-group flex-1">
+              <label for="med-type">الشكل الدوائي</label>
+              <select id="med-type">
+                <option value="tablet">💊 أقراص/كبسولات</option>
+                <option value="syrup">🧪 شراب/سائل</option>
+                <option value="injection">💉 حقن</option>
+                <option value="cream">🧴 مرهم/كريم</option>
+                <option value="drops">💧 قطرة</option>
+                <option value="other">📦 أخرى</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="med-frequency">عدد المرات يومياً</label>
+              <select id="med-frequency" onchange="app.generateTimeInputs()">
+                <option value="1">مرة واحدة في اليوم</option>
+                <option value="2">مرتين في اليوم</option>
+                <option value="3">3 مرات في اليوم</option>
+                <option value="4">4 مرات في اليوم</option>
+                <option value="0">عند اللزوم فقط</option>
+              </select>
+            </div>
+            <div class="form-group flex-1">
+              <label for="med-snooze">تكرار التنبيه (Snooze)</label>
+              <select id="med-snooze">
+                <option value="5">كل 5 دقائق</option>
+                <option value="10">كل 10 دقائق</option>
+                <option value="15">كل 15 دقيقة</option>
+                <option value="0">بدون تكرار</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Dynamic Time Inputs -->
+          <div class="form-group" id="time-inputs-container">
+            <label>أوقات تناول الدواء</label>
+            <div class="time-inputs-grid" id="time-inputs-grid">
+              <div class="time-input-item">
+                <span>الجرعة 1:</span>
+                <input type="time" class="med-time-input" required value="08:00">
+              </div>
+            </div>
+          </div>
+
+          <!-- Inventory Management -->
+          <div class="form-row card-dark mt-2">
+            <div class="form-group flex-1">
+              <label for="med-stock">المخزون الحالي (عدد الحبوب/العبوات)</label>
+              <input type="number" id="med-stock" min="0" placeholder="مثال: 30" onchange="app.toggleStockAlertUI()">
+            </div>
+            <div class="form-group flex-1" id="stock-alert-wrapper">
+              <label for="med-stock-alert">نبهني بالشراء عند وصول المخزون لـ</label>
+              <input type="number" id="med-stock-alert" min="0" placeholder="مثال: 5">
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="app.closeAddModal()">إلغاء</button>
+            <button type="submit" class="btn btn-primary">حفظ الدواء</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- In-app Medication Reminder Overlay (Active Alarm) -->
+  <div id="alarm-overlay" class="alarm-overlay hidden">
+    <div class="alarm-container">
+      <div class="alarm-bell-animation">
+        <div class="bell-ring">🔔</div>
+      </div>
+      <h2>⏰ حان موعد تناول الدواء!</h2>
+      <h1 id="alarm-med-name">بنادول</h1>
+      <p id="alarm-med-dosage">الجرعة: حبة واحدة (💊 أقراص)</p>
+      
+      <div id="alarm-med-img-wrapper" class="alarm-med-image hidden">
+        <img id="alarm-med-img" src="" alt="علبة الدواء">
+      </div>
+
+      <div class="alarm-buttons">
+        <button class="btn btn-success btn-lg" onclick="app.acknowledgeAlarm('taken')">تم التناول ✅</button>
+        <button class="btn btn-outline btn-lg text-white" onclick="app.acknowledgeAlarm('snooze')">تأجيل 5 دقائق ⏳</button>
+        <button class="btn btn-outline btn-sm text-danger" onclick="app.acknowledgeAlarm('skip')">تخطي الجرعة ❌</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript file -->
+  <script src="app.js"></script>
+</body>
+</html>
