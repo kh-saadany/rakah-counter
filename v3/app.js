@@ -154,8 +154,8 @@ let detectionState = "IDLE"; // IDLE, DOWN_PENDING, IN_SUDJUD, UP_PENDING
 let stateStartTime = 0; // For debounce timers
 
 // Debounce & Cooldown Constants (ms)
-const CONFIRM_DOWN_TIME = 300; // Time brightness must stay dark to confirm Sujud (reduced because delta has built-in integration)
-const CONFIRM_UP_TIME = 300; // Time brightness must stay light to confirm Stand/Sit
+const CONFIRM_DOWN_TIME = 700; // Time brightness must stay dark to confirm Sujud (increased for low-light filtering)
+const CONFIRM_UP_TIME = 700; // Time brightness must stay light to confirm Stand/Sit
 const SUJUD_COOLDOWN = 3500; // Cooldown after a Sajdah is counted before detecting next
 let lastSajdahTime = 0;
 
@@ -830,7 +830,7 @@ function startCalibrationSensing(rakah) {
         average: overallAvg
       };
       
-      shadowThreshold = ambientBrightness.average * 0.50;
+      shadowThreshold = ambientBrightness.average * 0.25;
       recoveryThreshold = ambientBrightness.average * 0.75;
       // Make contrast threshold much more lenient (e.g. 4% of ambient or absolute 3% difference, whichever is larger)
       contrastThreshold = Math.max(3.0, ambientBrightness.average * 0.04);
