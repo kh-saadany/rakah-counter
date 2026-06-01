@@ -807,14 +807,29 @@ function startCalibrationSensing(rakah) {
       clearInterval(phaseTimer);
       clearInterval(sampleInterval);
       
-      // Calculate calibration results
+      // Calculate calibration results using Trimmed Mean (dropping 10 lowest and 10 highest samples)
       if (samples.length === 0) {
         samples.push(getFrameLuminance() || { center: 50, periphery: 50, average: 50 });
       }
       
-      const centerAvg = samples.reduce((a, b) => a + b.center, 0) / samples.length;
-      const peripheryAvg = samples.reduce((a, b) => a + b.periphery, 0) / samples.length;
-      const overallAvg = samples.reduce((a, b) => a + b.average, 0) / samples.length;
+      // Sort copies of samples for each metric to compute their independent trimmed mean
+      const sortedCenter = [...samples].sort((a, b) => a.center - b.center);
+      const sortedPeriphery = [...samples].sort((a, b) => a.periphery - b.periphery);
+      const sortedAverage = [...samples].sort((a, b) => a.average - b.average);
+      
+      const totalCount = samples.length;
+      let trimCount = 10;
+      if (totalCount < 21) {
+        trimCount = Math.floor(totalCount * 0.28); // Drop roughly 28% from each side if sample size is small
+      }
+      
+      const centerRemaining = sortedCenter.slice(trimCount, totalCount - trimCount);
+      const peripheryRemaining = sortedPeriphery.slice(trimCount, totalCount - trimCount);
+      const averageRemaining = sortedAverage.slice(trimCount, totalCount - trimCount);
+      
+      const centerAvg = centerRemaining.reduce((a, b) => a + b.center, 0) / centerRemaining.length;
+      const peripheryAvg = peripheryRemaining.reduce((a, b) => a + b.periphery, 0) / peripheryRemaining.length;
+      const overallAvg = averageRemaining.reduce((a, b) => a + b.average, 0) / averageRemaining.length;
       
       ambientBrightness = {
         center: centerAvg,
