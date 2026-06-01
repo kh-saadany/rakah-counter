@@ -139,7 +139,7 @@ let brightnessInterval = null;
 let currentBrightness = { center: 0, periphery: 0, average: 0 };
 let ambientBrightness = { center: 0, periphery: 0, average: 0 }; // Baseline calibrated brightness
 let shadowThreshold = 0; // Value below which Sujud is confirmed (usually 50% of ambient average)
-let recoveryThreshold = 0; // Value above which rise is confirmed (usually 75% of ambient average)
+let recoveryThreshold = 0; // Value above which rise is confirmed (usually 65% of ambient average)
 let contrastThreshold = 0; // Minimum difference between periphery and center to confirm approach/exit
 let isLowLightMode = false; // Mode set dynamically based on baseline ambient light (<= 25%)
 let detectionState = "IDLE"; // IDLE, DOWN_PENDING, IN_SUDJUD, UP_PENDING
@@ -823,7 +823,7 @@ function startCalibrationSensing(rakah) {
       };
       
       shadowThreshold = ambientBrightness.average * 0.25;
-      recoveryThreshold = ambientBrightness.average * 0.75;
+      recoveryThreshold = ambientBrightness.average * 0.65;
       // Make contrast threshold much more lenient (e.g. 4% of ambient or absolute 3% difference, whichever is larger)
       contrastThreshold = Math.max(3.0, ambientBrightness.average * 0.04);
       
