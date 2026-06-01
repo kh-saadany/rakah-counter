@@ -1,0 +1,18 @@
+{
+  "name": "rakah-counter",
+  "version": "1.0.0",
+  "description": "تطبيق ويب تقدمي لعد الركعات تلقائياً أثناء الصلاة",
+  "main": "app.js",
+  "scripts": {
+    "dev": "npx -y http-server -p 3003"
+  },
+  "keywords": [
+    "rakah",
+    "counter",
+    "prayer",
+    "salah",
+    "pwa"
+  ],
+  "author": "",
+  "license": "ISC"
+}

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>عداد الركعات الذكي</title>
+  
+  <!-- PWA Requirements -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="icon-192.png">
+  <meta name="theme-color" content="#030704">
+  
+  <!-- Apple Touch Icon & Display Settings -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="عداد الركعات">
+  
+  <!-- Fonts (Outfit for numbers/EN, Tajawal for Arabic) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheet with Cache Busting -->
+  <link rel="stylesheet" href="style.css?v=36">
+</head>
+<body>
+
+  <!-- Fullscreen screen-dimming overlay during active Sujud -->
+  <div id="sujud-overlay"></div>
+
+  <!-- Central toast notifications container -->
+  <div id="toast-container"></div>
+
+  <!-- Primary Application Wrapper -->
+  <main id="app-container">
+    
+    <!-- Header: Application Branding & Language Switcher -->
+    <header class="app-header">
+      <div class="logo">
+        <span class="logo-icon">🕌</span>
+        <span class="logo-text" data-i18n="logoText">عداد الركعات</span>
+      </div>
+      <button id="btn-lang" class="btn-icon" aria-label="Toggle Language">
+        🌐 <span id="lang-text">EN</span>
+      </button>
+    </header>
+
+    <!-- ==========================================
+         VIEW 1: HOME & SETUP
+         ========================================== -->
+    <section id="view-home" class="app-view active">
+      
+      <!-- Brief Description Card -->
+      <div class="card glass-card hero-card">
+        <p class="hero-subtitle" data-i18n="appDesc">ضع الهاتف على سجادة الصلاة وسيقوم التطبيق بعدّ الركعات تلقائياً باستخدام الكاميرا الأمامية كمستشعر للتقارب والظل.</p>
+      </div>
+
+      <!-- Prayer Selection Settings -->
+      <div class="card glass-card settings-card">
+        <h2 class="section-title" data-i18n="selectPrayer">اختر عدد الركعات</h2>
+        <div class="prayer-grid">
+          <button class="btn-prayer active" data-rakahs="2" data-name="rakah-2">
+            <span class="prayer-name" data-i18n="twoRakahs">ركعتان</span>
+          </button>
+          <button class="btn-prayer" data-rakahs="3" data-name="rakah-3">
+            <span class="prayer-name" data-i18n="threeRakahs">٣ ركعات</span>
+          </button>
+          <button class="btn-prayer" data-rakahs="4" data-name="rakah-4">
+            <span class="prayer-name" data-i18n="fourRakahs">٤ ركعات</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Compact 3-Column Instruction Steps -->
+      <div class="card glass-card info-card">
+        <div class="instruction-step">
+          <span class="step-num">1</span>
+          <p data-i18n="step1">ضع الهاتف أمامك أثناء الصلاة بحيث يكون أسفل صدرك عندما تسجد، وتأكد من عدم وجود ما يعيق الكاميرا الأمامية.</p>
+        </div>
+        <div class="instruction-step">
+          <span class="step-num">2</span>
+          <p data-i18n="step2">التطبيق سيعمل بشكل أفضل في ظروف الإضاءة الجيدة، وبشكل مقبول في ظروف الإضاءة المنخفضة، ولكنه لن يعمل في ظروف الإضاءة شديدة الانخفاض أو الإظلام.</p>
+        </div>
+      </div>
+
+      <!-- Action Buttons Stack at the Bottom -->
+      <div class="home-actions">
+        <button id="btn-start" class="btn btn-primary font-bold">
+          <span data-i18n="startPrayer">ابدأ الصلاة الآن</span>
+        </button>
+        <button id="btn-direct-athkar" class="btn btn-secondary font-bold" data-i18n="directAthkar">
+          📿 أذكار ما بعد الصلاة
+        </button>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         VIEW 2: ACTIVE PRAYER SCREEN
+         ========================================== -->
+    <section id="view-prayer" class="app-view">
+      
+      <!-- Top info bar -->
+      <div class="prayer-status-bar">
+        <span id="active-prayer-name" class="badge">الفجر</span>
+        <span id="active-sensor-badge" class="badge" data-i18n="sensorLightMode" style="background: rgba(255, 215, 0, 0.15); border: 1.5px solid rgba(212, 175, 55, 0.4); color: var(--color-gold); font-size: 0.72rem; padding: 4px 10px; font-weight: 500; display: none;">💡 مستشعر الضوء الفيزيائي</span>
+        <span id="prayer-timer" class="badge bg-gold">00:00</span>
+      </div>
+
+      <!-- Giant Rakah Counter Display -->
+      <div class="prayer-counter-box">
+        <div class="counter-label" data-i18n="currentRakah">الركعة الحالية</div>
+        <div id="rakah-number" class="counter-number">1</div>
+        <div id="rakah-name" class="counter-rakah-name">الركعة الأولى</div>
+      </div>
+
+      <!-- Sujud Indicators -->
+      <div class="sujud-indicator-container">
+        <div class="sujud-step" id="sujud-step-1">
+          <div class="sujud-dot">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+          <span class="sujud-label" data-i18n="sajdah1">السجدة الأولى</span>
+        </div>
+        <div class="sujud-step" id="sujud-step-2">
+          <div class="sujud-dot">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+          <span class="sujud-label" data-i18n="sajdah2">السجدة الثانية</span>
+        </div>
+      </div>
+
+      <!-- Active calibration/sensor status tip -->
+      <div id="prayer-status-tip" class="prayer-status-tip" data-i18n="standClose">اسجد فوق موضع الهاتف ليتم الاستشعار</div>
+
+      <!-- Mini camera preview / sensor debug panel (hidden from main UI) -->
+      <div id="debug-panel" class="hidden">
+        <div style="display:flex;justify-content:center;margin-bottom:10px;">
+          <div style="width:100px;height:75px;border:1.5px solid var(--color-gold);border-radius:8px;overflow:hidden;background:#000;">
+            <video id="video-preview" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;transform:scaleX(-1);"></video>
+            <canvas id="canvas-processing" width="16" height="12" class="hidden"></canvas>
+          </div>
+        </div>
+        <span id="dbg-current">---</span>
+        <span id="dbg-threshold">---</span>
+        <span id="dbg-state">IDLE</span>
+        <span id="dbg-aelock">---</span>
+        <div id="dbg-bar" style="width:0%;"></div>
+      </div>
+
+      <!-- Ergonmic Pause & Post-Prayer control stack -->
+      <div class="exit-control-wrapper">
+        <!-- Sensor Data Log Card -->
+        <div id="log-card" class="glass-card hidden" style="width: 100%; margin-bottom: 15px; max-height: 200px; display: flex; flex-direction: column;">
+          <h3 id="log-title-text" style="font-size: 0.9rem; color: var(--color-gold); margin-bottom: 8px; text-align: center;" data-i18n="logTitle">📊 سجل حركة الصلاة (بيانات الاستشعار)</h3>
+          <div style="flex: 1; overflow-y: auto; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); border-radius: 8px;">
+            <table style="width: 100%; font-size: 0.72rem; border-collapse: collapse; text-align: center;">
+              <thead>
+                <tr style="border-bottom: 1px solid rgba(212, 175, 55, 0.3); color: var(--text-muted); background: rgba(0,0,0,0.2); position: sticky; top: 0; backdrop-filter: blur(5px);">
+                  <th style="padding: 6px 4px;" data-i18n="logTime">الوقت (ث)</th>
+                  <th style="padding: 6px 4px;" data-i18n="logMovement">الحركة</th>
+                  <th style="padding: 6px 4px;" data-i18n="logBrightness">السطوع</th>
+                  <th style="padding: 6px 4px;" data-i18n="logBaseline">المعيار</th>
+                </tr>
+              </thead>
+              <tbody id="log-table-body">
+                <!-- Logs will be inserted here dynamically -->
+              </tbody>
+            </table>
+          </div>
+          <div style="display: flex; gap: 8px; justify-content: center; flex-shrink: 0;">
+            <button id="btn-copy-log" class="btn-icon" style="font-size: 0.75rem; padding: 5px 12px;" data-i18n="btnCopyCSV">📋 نسخ CSV</button>
+            <button id="btn-share-log" class="btn-icon" style="font-size: 0.75rem; padding: 5px 12px;" data-i18n="btnShare">📤 مشاركة</button>
+          </div>
+        </div>
+
+        <button id="btn-show-athkar" class="btn btn-primary font-bold hidden" data-i18n="btnShowAthkar">
+          📿 أذكار ما بعد الصلاة
+        </button>
+        <button id="btn-pause-prayer" class="btn-hold-exit">
+          <span id="hold-progress" class="btn-hold-progress"></span>
+          <span class="btn-hold-text" data-i18n="holdToExit">اضغط مطولاً للإنهاء</span>
+        </button>
+      </div>
+
+      <!-- Modal-styled Middle Tashahhud overlay -->
+      <div id="tashahhud-overlay" class="hidden">
+        <div class="tashahhud-card-content">
+          <h2 class="tashahhud-title" data-i18n="middleTashahhud">التشهد الأوسط</h2>
+          <p class="tashahhud-desc" data-i18n="tashahhudDesc">جلسة التشهد الأوسط بعد الركعة الثانية.</p>
+          <div class="tashahhud-timer hidden">
+            <span id="tashahhud-countdown">30</span>
+            <span class="tashahhud-sec-unit" data-i18n="seconds">ثانية</span>
+          </div>
+          <button id="btn-skip-tashahhud" class="btn btn-secondary font-bold" data-i18n="btnSkip">تخطي</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         VIEW 3: SEQUENTIAL ATHKAR FLOW
+         ========================================== -->
+    <section id="view-athkar" class="app-view">
+      
+      <!-- Progress Bar & Navigation Header Card -->
+      <div class="card glass-card athkar-header-card">
+        <span id="athkar-progress" class="badge">الذكر 1 من 12</span>
+        <div class="athkar-nav-row">
+          <button id="btn-prev-thikr" class="btn-icon" data-i18n="btnPrev">السابق</button>
+          <button id="btn-skip-thikr" class="btn-icon" data-i18n="btnSkip">تخطي</button>
+        </div>
+      </div>
+
+      <!-- Supplication content text area -->
+      <div class="card glass-card athkar-body-card">
+        <div id="athkar-text">أستغفر الله</div>
+      </div>
+
+      <!-- Large tap-to-count tactile area -->
+      <button id="btn-tap-athkar" class="tasbeeh-tap-area">
+        <span id="athkar-counter-disp" class="tasbeeh-counter-number">0</span>
+        <span id="athkar-target" class="tasbeeh-tap-tip">العدد المطلوب: 3 (اضغط للتسبيح)</span>
+      </button>
+
+      <!-- Return button -->
+      <button id="btn-athkar-back-home" class="btn btn-secondary font-bold">
+        🏠 <span data-i18n="backHome">العودة للرئيسية</span>
+      </button>
+    </section>
+
+    <!-- ==========================================
+         VIEW 4: PRAYER COMPLETION SCREEN
+         ========================================== -->
+    <section id="view-completed" class="app-view view-completed-centered">
+      
+      <!-- Beautiful, clean centered message -->
+      <div class="complete-center-content">
+        <div class="complete-glow-icon">🤲</div>
+        <h1 class="complete-title" data-i18n="accept">تقبل الله</h1>
+        <p class="complete-subtitle" data-i18n="acceptDesc">الحمد لله الذي بنعمته تتم الصالحات.</p>
+      </div>
+
+      <!-- Back home button -->
+      <div class="complete-back-btn-wrapper">
+        <button id="btn-back-home" class="btn btn-primary">
+          🏠 <span data-i18n="backHome">العودة للرئيسية</span>
+        </button>
+      </div>
+
+      <!-- Completely hidden fallback container for JS bindings (DO NOT remove/rename) -->
+      <div class="hidden">
+        <span id="summary-rakahs">2</span>
+        <span id="summary-duration">00:00</span>
+        <div class="stats-card-completed"></div>
+        <button id="btn-reset-tasbeeh"></button>
+        <span id="tasbeeh-text"></span>
+        <button id="btn-tap-tasbeeh"><span id="tasbeeh-count">0</span></button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Application Script with Cache Busting -->
+  <script src="app.js?v=36"></script>
+</body>
+</html>

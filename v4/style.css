@@ -1,0 +1,815 @@
+/* ==========================================================================
+   عداد الركعات الذكي - نظام التصميم الفاخر (UI Redesign from Scratch)
+   ========================================================================== */
+
+:root {
+  /* Color Palette - Emerald Obsidian & Sacred Gold */
+  --bg-primary: radial-gradient(circle at 50% 30%, #0c2317 0%, #030805 100%);
+  --bg-dark-solid: #030704;
+  --bg-card: rgba(12, 34, 22, 0.45);
+  --bg-card-hover: rgba(16, 46, 30, 0.6);
+  --bg-card-active: rgba(20, 60, 38, 0.7);
+  
+  --color-gold: #d4af37;
+  --color-gold-light: #f3d47a;
+  --color-gold-glow: rgba(212, 175, 55, 0.35);
+  
+  --color-emerald: #10b981;
+  --color-emerald-glow: rgba(16, 185, 129, 0.35);
+  
+  --color-red: #ef4444;
+  --color-red-glow: rgba(239, 68, 68, 0.3);
+  
+  --text-primary: #f5f8f6;
+  --text-muted: #8ca396;
+  
+  /* Borders & Glassmorphism */
+  --glass-border: 1px solid rgba(212, 175, 55, 0.15);
+  --glass-border-active: 1.5px solid rgba(212, 175, 55, 0.65);
+  --glass-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.5);
+  --glass-blur: blur(12px);
+  
+  /* Fonts */
+  --font-ar: 'Tajawal', sans-serif;
+  --font-en: 'Outfit', sans-serif;
+  
+  /* Mobile Safe Areas */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ==========================================================================
+   1. Reset & Core Styles
+   ========================================================================== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+html {
+  font-size: 112.5%; /* Globals font size increase (rem unit scale) */
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background-color: var(--bg-dark-solid);
+}
+
+body {
+  color: var(--text-primary);
+  font-family: var(--font-ar);
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+}
+
+html[lang="en"] body {
+  font-family: var(--font-en);
+}
+
+/* ==========================================================================
+   2. Main Layout Container
+   ========================================================================== */
+#app-container {
+  width: 100%;
+  max-width: 460px;
+  height: 100dvh;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-primary);
+  display: flex;
+  flex-direction: column;
+  padding: calc(10px + var(--safe-top)) 20px calc(15px + var(--safe-bottom)) 20px;
+  box-sizing: border-box;
+}
+
+/* Background overlay during active Sujud (Full blackout except minimal elements if any) */
+#sujud-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #010402;
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+#sujud-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ==========================================================================
+   3. Header Navigation Bar
+   ========================================================================== */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.08);
+  flex-shrink: 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo-icon {
+  font-size: 1.4rem;
+  filter: drop-shadow(0 0 4px var(--color-gold-glow));
+}
+
+.logo-text {
+  font-weight: 800;
+  font-size: 1.25rem;
+  letter-spacing: -0.3px;
+  background: linear-gradient(135deg, var(--text-primary) 30%, var(--color-gold) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.btn-icon {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 6px 14px;
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-icon:active {
+  transform: scale(0.95);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--color-gold);
+}
+
+/* ==========================================================================
+   4. Views Management & Transitions
+   ========================================================================== */
+.app-view {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.app-view.active {
+  display: flex;
+  opacity: 1;
+  pointer-events: all;
+  animation: view-enter 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes view-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ==========================================================================
+   5. Reusable Glassmorphism Cards & Buttons
+   ========================================================================== */
+.glass-card {
+  background: var(--bg-card);
+  border: var(--glass-border);
+  border-radius: 20px;
+  padding: 14px 18px;
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* Premium Buttons */
+.btn {
+  border: none;
+  border-radius: 18px;
+  padding: 15px 22px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  font-family: inherit;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-gold) 0%, #b89326 100%);
+  color: #030704;
+  box-shadow: 0 4px 20px var(--color-gold-glow);
+}
+
+.btn-primary:active {
+  transform: scale(0.97);
+  filter: brightness(0.9);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+}
+
+.btn-secondary:active {
+  transform: scale(0.97);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--color-gold);
+}
+
+/* ==========================================================================
+   6. Home View Specifics (#view-home)
+   ========================================================================== */
+#view-home {
+  justify-content: space-between;
+  padding-top: 15px;
+}
+
+.hero-card {
+  text-align: center;
+  padding: 16px 20px;
+  background: linear-gradient(180deg, rgba(12, 35, 22, 0.5) 0%, rgba(3, 8, 5, 0.5) 100%);
+  border-color: rgba(212, 175, 55, 0.22);
+}
+
+.hero-subtitle {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+.settings-card {
+  padding: 14px 16px;
+}
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--color-gold-light);
+  text-align: center;
+  letter-spacing: 0.2px;
+}
+
+/* Horizontal Prayer Selector Grid (3 columns on 1 row) */
+.prayer-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.btn-prayer {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 16px 10px;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: center;
+  font-family: inherit;
+}
+
+.btn-prayer:active {
+  transform: scale(0.96);
+}
+
+.btn-prayer.active {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: var(--color-gold);
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.15);
+}
+
+.prayer-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  transition: color 0.2s ease;
+}
+
+.btn-prayer.active .prayer-name {
+  color: var(--color-gold);
+}
+
+.prayer-count {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.2;
+}
+
+/* Horizontal Instruction Steps Card */
+.info-card {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  padding: 14px 12px;
+}
+
+.instruction-step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+}
+
+.step-num {
+  background: var(--color-gold);
+  color: var(--bg-dark-solid);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-weight: 800;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 8px var(--color-gold-glow);
+}
+
+.instruction-step p {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* Bottom Button Group */
+.home-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+/* ==========================================================================
+   7. Active Prayer View Specifics (#view-prayer)
+   ========================================================================== */
+#view-prayer {
+  justify-content: space-between;
+  padding-top: 15px;
+}
+
+.prayer-status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.badge {
+  background: rgba(12, 34, 22, 0.4);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 12px;
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.badge.bg-gold {
+  border-color: var(--color-gold);
+  color: var(--color-gold-light);
+  box-shadow: 0 0 10px var(--color-gold-glow);
+  font-family: var(--font-en);
+}
+
+/* Large Counter Area */
+.prayer-counter-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.counter-label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.counter-number {
+  font-size: 16rem; /* Scaled from 10rem to 16rem (160% increase) */
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 0.9;
+  font-family: var(--font-en);
+  text-shadow: 0 0 30px rgba(255, 255, 255, 0.15), 0 0 60px var(--color-gold-glow);
+  margin: 5px 0;
+}
+
+.counter-rakah-name {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--color-gold);
+}
+
+/* Sujud Indicator Nodes */
+.sujud-indicator-container {
+  display: flex;
+  justify-content: center;
+  gap: 25px;
+  margin: 15px 0;
+}
+
+.sujud-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.sujud-dot {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: transparent;
+  transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.sujud-dot svg {
+  width: 20px;
+  height: 20px;
+}
+
+.sujud-step.active .sujud-dot {
+  border-color: var(--color-emerald);
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--color-emerald);
+  box-shadow: 0 0 15px var(--color-emerald-glow);
+  transform: scale(1.08);
+}
+
+.sujud-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.sujud-step.active .sujud-label {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.prayer-status-tip {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  min-height: 20px;
+}
+
+@keyframes pulse-glow {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; }
+}
+
+/* Safety Long-Press Exit Control */
+.exit-control-wrapper {
+  margin-top: auto;
+  width: 100%;
+}
+
+.btn-hold-exit {
+  width: 100%;
+  position: relative;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1.5px solid rgba(239, 68, 68, 0.25);
+  color: var(--color-red);
+  border-radius: 16px;
+  padding: 15px 20px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  transition: transform 0.1s ease;
+}
+
+.btn-hold-exit:active {
+  transform: scale(0.99);
+}
+
+.btn-hold-progress {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 0%;
+  background: rgba(239, 68, 68, 0.2);
+  transition: width 0.05s linear;
+}
+
+html[dir="rtl"] .btn-hold-progress {
+  left: auto;
+  right: 0;
+}
+
+.btn-hold-text {
+  position: relative;
+  z-index: 2;
+}
+
+/* Middle Tashahhud Modal Overlay */
+#tashahhud-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(3, 8, 5, 0.93);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.tashahhud-card-content {
+  width: 100%;
+  max-width: 360px;
+  background: rgba(12, 35, 22, 0.6);
+  border: 1.5px solid var(--color-gold);
+  border-radius: 24px;
+  padding: 25px 20px;
+  box-shadow: 0 10px 30px rgba(212, 175, 55, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.tashahhud-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--color-gold);
+  margin-bottom: 8px;
+}
+
+.tashahhud-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 15px;
+  line-height: 1.45;
+}
+
+.tashahhud-timer {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 5px;
+  margin-bottom: 20px;
+}
+
+#tashahhud-countdown {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  font-family: var(--font-en);
+  line-height: 1;
+}
+
+.tashahhud-sec-unit {
+  font-size: 1rem;
+  color: var(--color-gold);
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   8. Sequential Athkar Screen (#view-athkar)
+   ========================================================================== */
+#view-athkar {
+  justify-content: space-between;
+  padding-top: 15px;
+}
+
+.athkar-header-card {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.athkar-nav-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  width: 100%;
+}
+
+.athkar-nav-row .btn-icon {
+  font-size: 0.78rem;
+  padding: 5px 12px;
+}
+
+.athkar-body-card {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 12px 0;
+  min-height: 100px;
+  padding: 15px 20px;
+  text-align: center;
+  overflow-y: auto;
+}
+
+#athkar-text {
+  font-size: 1.12rem;
+  font-weight: 700;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+/* Large ergonomic circular tap area in bottom third */
+.tasbeeh-tap-area {
+  width: 100%;
+  height: 140px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 2px dashed rgba(212, 175, 55, 0.22);
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  margin-bottom: 12px;
+  box-sizing: border-box;
+}
+
+.tasbeeh-tap-area:active {
+  background: rgba(212, 175, 55, 0.06);
+  border-color: var(--color-gold);
+  transform: scale(0.98);
+}
+
+.tasbeeh-counter-number {
+  font-size: 3rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  font-family: var(--font-en);
+  line-height: 1.1;
+}
+
+.tasbeeh-tap-tip {
+  font-size: 0.72rem;
+  color: var(--color-gold);
+  margin-top: 4px;
+}
+
+/* ==========================================================================
+   9. Completion Screen Specifics (#view-completed)
+   ========================================================================== */
+.view-completed-centered {
+  justify-content: space-between;
+  padding: 40px 10px 15px 10px;
+  height: 100%;
+}
+
+.complete-center-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 15px;
+}
+
+.complete-glow-icon {
+  font-size: 4.8rem;
+  filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.55));
+  animation: pulse-glow 3s infinite ease-in-out;
+}
+
+.complete-title {
+  font-size: 1.8rem;
+  color: var(--color-gold);
+  font-weight: 800;
+}
+
+.complete-subtitle {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.complete-back-btn-wrapper {
+  width: 100%;
+}
+
+/* ==========================================================================
+   10. Toast Container & Utility Styles
+   ========================================================================== */
+#toast-container {
+  position: fixed;
+  top: calc(15px + var(--safe-top));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  width: 90%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.toast {
+  background: rgba(10, 20, 15, 0.95);
+  color: var(--text-primary);
+  border-left: 4px solid var(--color-gold);
+  padding: 12px 18px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(5px);
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: toast-in 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards,
+             toast-out 0.3s ease-in 3.7s forwards;
+  pointer-events: all;
+}
+
+html[dir="rtl"] .toast {
+  border-left: none;
+  border-right: 4px solid var(--color-gold);
+}
+
+.toast.toast-error {
+  border-color: var(--color-red);
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(-15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes toast-out {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-15px); }
+}
+
+/* Helper Utilities */
+.hidden {
+  display: none !important;
+}
+
+/* Custom alignment overrides */
+.text-center {
+  text-align: center;
+}
+
+.font-bold {
+  font-weight: 700;
+}
