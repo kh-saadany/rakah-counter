@@ -331,18 +331,17 @@ html[lang="en"] body {
 /* Horizontal Instruction Steps Card */
 .info-card {
   display: flex;
-  flex-direction: row;
-  gap: 10px;
-  padding: 14px 12px;
+  flex-direction: column; /* Stack steps vertically as paragraphs */
+  gap: 12px;
+  padding: 14px 14px;
 }
 
 .instruction-step {
-  flex: 1;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 6px;
+  flex-direction: row; /* Horizontal bullet layout */
+  align-items: flex-start;
+  text-align: start; /* Supports both RTL and LTR layouts */
+  gap: 10px;
 }
 
 .step-num {
@@ -357,12 +356,14 @@ html[lang="en"] body {
   align-items: center;
   justify-content: center;
   box-shadow: 0 0 8px var(--color-gold-glow);
+  flex-shrink: 0; /* Prevent shrinking when text wraps */
 }
 
 .instruction-step p {
   font-size: 0.75rem;
   color: var(--text-muted);
   line-height: 1.4;
+  margin: 0; /* Remove default margins */
 }
 
 /* Bottom Button Group */
@@ -424,7 +425,7 @@ html[lang="en"] body {
 }
 
 .counter-number {
-  font-size: 16rem; /* Scaled from 10rem to 16rem (160% increase) */
+  font-size: clamp(8rem, 25vh, 14.4rem); /* Responsive scaling to fit screen height without scroll */
   font-weight: 800;
   color: var(--text-primary);
   line-height: 0.9;

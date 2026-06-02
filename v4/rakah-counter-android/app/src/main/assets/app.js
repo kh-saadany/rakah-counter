@@ -254,10 +254,6 @@ const elements = {
   tashahhudCountdown: document.getElementById("tashahhud-countdown"),
   btnSkipTashahhud: document.getElementById("btn-skip-tashahhud"),
   btnAthkarBackHome: document.getElementById("btn-athkar-back-home"),
-  logCard: document.getElementById("log-card"),
-  logTableBody: document.getElementById("log-table-body"),
-  btnCopyLog: document.getElementById("btn-copy-log"),
-  btnShareLog: document.getElementById("btn-share-log"),
 
   // Debug panel elements
   dbgCurrent: document.getElementById("dbg-current"),
@@ -287,8 +283,8 @@ function initializeDefaultRakahs() {
   let defaultRakahs = 2;
   
   if (isDST) {
-    // Shift ranges by +1 hour for DST
-    if (hour >= 5 && hour < 13) {
+    // Summer DST: 2 Rakahs from 1:00 AM to 1:00 PM
+    if (hour >= 1 && hour < 13) {
       defaultRakahs = 2;   // Fajr / Morning / Duha (2 Rakahs)
     } else if (hour >= 13 && hour < 18) {
       defaultRakahs = 4;   // Dhuhr / Asr (4 Rakahs)
@@ -298,8 +294,8 @@ function initializeDefaultRakahs() {
       defaultRakahs = 4;   // Isha / Night (4 Rakahs)
     }
   } else {
-    // Standard Time ranges
-    if (hour >= 4 && hour < 12) {
+    // Standard Time: 2 Rakahs from 12:00 AM (midnight) to 12:00 PM (noon)
+    if (hour >= 0 && hour < 12) {
       defaultRakahs = 2;   // Fajr / Morning / Duha (2 Rakahs)
     } else if (hour >= 12 && hour < 17) {
       defaultRakahs = 4;   // Dhuhr / Asr (4 Rakahs)
@@ -497,18 +493,6 @@ function setupEventHandlers() {
   if (elements.btnAthkarBackHome) {
     elements.btnAthkarBackHome.addEventListener("click", () => {
       exitPrayer(true);
-    });
-  }
-
-  if (elements.btnCopyLog) {
-    elements.btnCopyLog.addEventListener("click", () => {
-      copyLogsToClipboard();
-    });
-  }
-
-  if (elements.btnShareLog) {
-    elements.btnShareLog.addEventListener("click", () => {
-      shareLogs();
     });
   }
 
@@ -1096,29 +1080,13 @@ function onSujudDown() {
   
   // 2. Light tactile click to reassure that phone entered Sujud state (optional, short)
   triggerVibration(60);
-
-  // 3. Log sensor data
-  prayerLogs.push({
-    time: prayerDurationSeconds,
-    type: currentLang === "ar" ? "سجود" : "Sujud",
-    brightness: currentBrightness.average.toFixed(2),
-    baseline: ambientBrightness.average.toFixed(2)
-  });
 }
 
 function onSujudUp() {
   // 1. Un-dim screen
   elements.sujudOverlay.classList.remove("active");
   
-  // 2. Log sensor data
-  prayerLogs.push({
-    time: prayerDurationSeconds,
-    type: currentLang === "ar" ? "رفع" : "Rise",
-    brightness: currentBrightness.average.toFixed(2),
-    baseline: ambientBrightness.average.toFixed(2)
-  });
-  
-  // 3. Process Sujud completion
+  // 2. Process Sujud completion
   lastSajdahTime = Date.now();
   currentSajdahCount++;
   
@@ -1188,10 +1156,6 @@ function updateSujudIndicators() {
 // --- Active Prayer Management ---
 async function startPrayer() {
   isDirectAthkarMode = false;
-  prayerLogs = [];
-  if (elements.logCard) {
-    elements.logCard.classList.add("hidden");
-  }
   
   // Clear Tashahhud timer if any
   if (tashahhudTimer) {
@@ -1379,9 +1343,6 @@ function onPrayerFinished() {
   
   // Show "أذكار ما بعد الصلاة" button
   elements.btnShowAthkar.classList.remove("hidden");
-  
-  // Render logs directly after last Rakah is completed, before Athkar
-  renderPrayerLogs();
 }
 
 // --- Sequential Athkar Flow ---
@@ -1558,76 +1519,7 @@ function resetTasbeeh() {
   triggerVibration(80);
 }
 
-// --- Sensor Data Logging Functions ---
-function renderPrayerLogs() {
-  if (!elements.logCard || !elements.logTableBody) return;
-  
-  if (prayerLogs.length === 0) {
-    elements.logCard.classList.add("hidden");
-    return;
-  }
-  
-  elements.logTableBody.innerHTML = "";
-  
-  prayerLogs.forEach((logEntry, index) => {
-    const tr = document.createElement("tr");
-    tr.style.borderBottom = "1px solid rgba(255, 255, 255, 0.05)";
-    if (index % 2 === 1) {
-      tr.style.background = "rgba(255, 255, 255, 0.01)";
-    }
-    
-    tr.innerHTML = `
-      <td style="padding: 6px 4px; font-family: var(--font-en); font-weight: bold;">${logEntry.time}</td>
-      <td style="padding: 6px 4px; color: ${logEntry.type === "سجود" || logEntry.type === "Sujud" ? "var(--color-emerald)" : "var(--color-gold)"}">${logEntry.type}</td>
-      <td style="padding: 6px 4px; font-family: var(--font-en); color: #00FF88;">${logEntry.brightness}%</td>
-      <td style="padding: 6px 4px; font-family: var(--font-en); color: #FFD700;">${logEntry.baseline}%</td>
-    `;
-    elements.logTableBody.appendChild(tr);
-  });
-  
-  elements.logCard.classList.remove("hidden");
-}
 
-function generateLogsCSV() {
-  let header = currentLang === "ar" ? "الوقت (ثواني),الحركة,الإضاءة اللحظية,الإضاءة المعيارية للركعة\n" : "Time (s),Movement,Current Light,Baseline Light\n";
-  let rows = prayerLogs.map(logEntry => `${logEntry.time},${logEntry.type},${logEntry.brightness}%,${logEntry.baseline}%`).join("\n");
-  return header + rows;
-}
-
-function copyLogsToClipboard() {
-  const csvContent = generateLogsCSV();
-  navigator.clipboard.writeText(csvContent)
-    .then(() => {
-      showToast(currentLang === "ar" ? "تم نسخ السجل بصيغة CSV في الحافظة!" : "Log copied as CSV to clipboard!", "success");
-      triggerVibration(80);
-    })
-    .catch((err) => {
-      console.error("Clipboard copy failed:", err);
-      showToast(currentLang === "ar" ? "حدث خطأ أثناء النسخ!" : "Error copying to clipboard!", "error");
-    });
-}
-
-async function shareLogs() {
-  const csvContent = generateLogsCSV();
-  const shareData = {
-    title: currentLang === "ar" ? "سجل حركة صلاة عداد الركعات" : "Rakah Counter Prayer Log",
-    text: csvContent
-  };
-  
-  if (navigator.share) {
-    try {
-      await navigator.share(shareData);
-      triggerVibration(80);
-    } catch (err) {
-      console.warn("Navigator share failed:", err);
-      // Fallback to copy if share fails or cancelled
-      copyLogsToClipboard();
-    }
-  } else {
-    // If Web Share is not supported, fallback to copying to clipboard
-    copyLogsToClipboard();
-  }
-}
 
 // Register Service Worker for PWA Offline support
 if ("serviceWorker" in navigator) {
