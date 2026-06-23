@@ -1,0 +1,12 @@
+# Local Netlify folder
+.netlify
+# Chrome profiles
+.chrome_profile/
+.chrome_user_data/
+# Fallow reports
+.fallow-reports/
+.fallow/
+# Log files
+*.log
+# Node modules
+node_modules/

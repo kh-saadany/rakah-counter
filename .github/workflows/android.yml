@@ -29,13 +29,13 @@ jobs:
           gradle-version: '8.5'
 
       - name: Build debug APK
-        run: gradle -p v4/rakah-counter-android assembleDebug
+        run: gradle -p v5/rakah-counter-android assembleDebug
 
       - name: Upload APK as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: rakah-counter-debug-apk
-          path: v4/rakah-counter-android/app/build/outputs/apk/debug/app-debug.apk
+          path: v5/rakah-counter-android/app/build/outputs/apk/debug/app-debug.apk
 
       - name: Release Latest APK
         env:
@@ -45,7 +45,7 @@ jobs:
           gh release delete latest --yes || true
           
           # Rename the APK to a cleaner name for release
-          cp v4/rakah-counter-android/app/build/outputs/apk/debug/app-debug.apk rakah-counter.apk
+          cp v5/rakah-counter-android/app/build/outputs/apk/debug/app-debug.apk rakah-counter.apk
           
           # Create new latest release with the renamed APK
           gh release create latest rakah-counter.apk --title "Latest Build" --notes "Automated build of the latest version" --prerelease
