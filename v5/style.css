@@ -819,3 +819,231 @@ html[dir="rtl"] .toast {
 .font-bold {
   font-weight: 700;
 }
+
+/* ==========================================================================
+   11. Telemetry / Diagnostics Modal Styles
+   ========================================================================== */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.telemetry-badge {
+  background: var(--color-gold);
+  color: #030704;
+  font-size: 0.68rem;
+  font-weight: 800;
+  border-radius: 12px;
+  padding: 1px 6px;
+  min-width: 14px;
+  text-align: center;
+  line-height: 1.2;
+  display: inline-block;
+}
+
+#telemetry-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(3, 8, 5, 0.95);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.telemetry-card {
+  width: 100%;
+  max-width: 520px;
+  max-height: 92vh;
+  background: rgba(12, 35, 22, 0.92);
+  border: 1.5px solid var(--color-gold);
+  border-radius: 24px;
+  padding: 20px 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.telemetry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.telemetry-header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.telemetry-header-title h2 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--color-gold);
+  margin: 0;
+}
+
+.telemetry-icon {
+  font-size: 1.3rem;
+}
+
+.btn-close {
+  padding: 4px 10px;
+  font-size: 1rem;
+}
+
+.telemetry-summary-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.telemetry-actions-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-sm {
+  border: none;
+  border-radius: 12px;
+  padding: 7px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.btn-sm:active {
+  transform: scale(0.96);
+}
+
+.btn-sm.btn-gold {
+  background: linear-gradient(135deg, var(--color-gold) 0%, #b89326 100%);
+  color: #030704;
+}
+
+.btn-sm.btn-outline {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--text-primary);
+}
+
+.btn-sm.btn-danger {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #ff8888;
+}
+
+.telemetry-content-list {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 52vh;
+  padding-right: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.telemetry-content-list::-webkit-scrollbar {
+  width: 5px;
+}
+
+.telemetry-content-list::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.3);
+  border-radius: 4px;
+}
+
+.telemetry-empty-msg {
+  text-align: center;
+  padding: 30px 10px;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.telemetry-session-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 16px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.session-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding-bottom: 6px;
+  font-size: 0.82rem;
+}
+
+.session-date {
+  font-weight: 700;
+  color: var(--color-gold);
+  font-family: var(--font-en);
+}
+
+.session-prayer {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.telemetry-rakah-block {
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 0.8rem;
+}
+
+.rakah-baseline-info {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+  padding-bottom: 4px;
+  font-size: 0.76rem;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.rakah-sajdah-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.rakah-sajdah-row:last-child {
+  border-bottom: none;
+}
+
+.sajdah-values {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-en);
+  font-size: 0.78rem;
+  flex-wrap: wrap;
+}

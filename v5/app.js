@@ -66,7 +66,18 @@ const translations = {
     sensorProximityMode: "📶 مستشعر التقارب الفيزيائي",
     finalTashahhud: "التشهد الأخير",
     finalTashahhudDesc: "جلسة التشهد الأخير في نهاية الصلاة.",
-    startAthkar: "البدء في الأذكار"
+    startAthkar: "البدء في الأذكار",
+    telemetryTitle: "سجل بيانات الاستضاءة والحساسات",
+    viewTelemetry: "سجل قياسات الاستضاءة",
+    copyCSV: "📋 نسخ CSV",
+    copyText: "📝 نسخ تقرير نصي",
+    clearLogs: "🗑️ مسح السجل",
+    clearLogsConfirm: "هل أنت متأكد من مسح جميع بيانات الصلوات المسجلة؟ لن يمكن استرجاعها.",
+    close: "إغلاق",
+    noTelemetryData: "لا توجد بيانات صلوات مسجلة بعد.",
+    toastCopiedCSV: "تم نسخ السجل بصيغة CSV في الحافظة!",
+    toastCopiedText: "تم نسخ التقرير النصي في الحافظة!",
+    toastClearedLogs: "تم مسح سجل القياسات بنجاح."
   },
   en: {
     logoText: "Rakah Counter",
@@ -134,7 +145,18 @@ const translations = {
     sensorProximityMode: "📶 Physical Proximity Sensor",
     finalTashahhud: "Final Tashahhud",
     finalTashahhudDesc: "Sitting for the Final Tashahhud.",
-    startAthkar: "Start Athkar"
+    startAthkar: "Start Athkar",
+    telemetryTitle: "Sensor & Light Telemetry Log",
+    viewTelemetry: "View Prayer Telemetry",
+    copyCSV: "📋 Copy CSV",
+    copyText: "📝 Copy Text Report",
+    clearLogs: "🗑️ Clear Logs",
+    clearLogsConfirm: "Are you sure you want to clear all recorded telemetry? This cannot be undone.",
+    close: "Close",
+    noTelemetryData: "No prayer telemetry recorded yet.",
+    toastCopiedCSV: "Telemetry copied as CSV to clipboard!",
+    toastCopiedText: "Telemetry text report copied to clipboard!",
+    toastClearedLogs: "Telemetry logs cleared successfully."
   }
 };
 
@@ -182,7 +204,14 @@ let currentSajdahCount = 0; // 0, 1, or 2 in current Rakah
 let prayerTimer = null;
 let prayerDurationSeconds = 0;
 let wakeLock = null;
-let prayerLogs = [];
+// Cumulative Telemetry State (Persisted across sessions & reboots via LocalStorage)
+const TELEMETRY_STORAGE_KEY = "rakah_telemetry_logs_v1";
+let cumulativeTelemetry = [];
+let activeSession = null;
+let currentSujudDownTimestamp = 0;
+let currentSujudDownLight = 0;
+let minLightDuringCurrentSujud = null;
+let currentSujudProximityDown = null;
 
 // Tasbeeh State
 const tasbeehPhrases = ["subhanallah", "alhamdulillah", "allahuakbar", "lailahaillallah"];
@@ -281,6 +310,21 @@ const elements = {
   btnCompletedStartAthkar: document.getElementById("btn-completed-start-athkar"),
   btnAthkarBackHome: document.getElementById("btn-athkar-back-home"),
 
+  // Telemetry elements
+  btnTelemetry: document.getElementById("btn-telemetry"),
+  telemetryBadge: document.getElementById("telemetry-badge"),
+  telemetryModal: document.getElementById("telemetry-modal"),
+  btnCloseTelemetry: document.getElementById("btn-close-telemetry"),
+  btnTelemetryDone: document.getElementById("btn-telemetry-done"),
+  btnCopyTelemetryCSV: document.getElementById("btn-copy-telemetry-csv"),
+  btnCopyTelemetryText: document.getElementById("btn-copy-telemetry-text"),
+  btnShareTelemetry: document.getElementById("btn-share-telemetry"),
+  btnClearTelemetry: document.getElementById("btn-clear-telemetry"),
+  telemetryContentList: document.getElementById("telemetry-content-list"),
+  telemetrySessionCount: document.getElementById("telemetry-session-count"),
+  telemetrySajdahCount: document.getElementById("telemetry-sajdah-count"),
+  btnViewTelemetryCompleted: document.getElementById("btn-view-telemetry-completed"),
+
   // Debug panel elements
   dbgCurrent: document.getElementById("dbg-current"),
   dbgThreshold: document.getElementById("dbg-threshold"),
@@ -294,6 +338,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initializeDefaultRakahs();
   setLanguage(currentLang);
   setupEventHandlers();
+  loadCumulativeTelemetry();
 });
 
 // Set default Rakahs count based on the current prayer time of day, taking DST into account
@@ -368,6 +413,9 @@ function setLanguage(lang) {
   // Keep state visual indicators (e.g. active prayer translation name)
   updatePrayerSelectionUI();
   updateRakahDisplay();
+  if (elements.telemetryModal && !elements.telemetryModal.classList.contains("hidden")) {
+    renderTelemetryList();
+  }
 }
 
 function showToast(message, type = "info") {
@@ -534,6 +582,55 @@ function setupEventHandlers() {
   if (elements.btnAthkarBackHome) {
     elements.btnAthkarBackHome.addEventListener("click", () => {
       exitPrayer(true);
+    });
+  }
+
+  // Telemetry Modal Triggers & Actions
+  if (elements.btnTelemetry) {
+    elements.btnTelemetry.addEventListener("click", () => {
+      openTelemetryModal();
+    });
+  }
+
+  if (elements.btnViewTelemetryCompleted) {
+    elements.btnViewTelemetryCompleted.addEventListener("click", () => {
+      openTelemetryModal();
+    });
+  }
+
+  if (elements.btnCloseTelemetry) {
+    elements.btnCloseTelemetry.addEventListener("click", () => {
+      closeTelemetryModal();
+    });
+  }
+
+  if (elements.btnTelemetryDone) {
+    elements.btnTelemetryDone.addEventListener("click", () => {
+      closeTelemetryModal();
+    });
+  }
+
+  if (elements.btnCopyTelemetryCSV) {
+    elements.btnCopyTelemetryCSV.addEventListener("click", () => {
+      copyTelemetry("csv");
+    });
+  }
+
+  if (elements.btnCopyTelemetryText) {
+    elements.btnCopyTelemetryText.addEventListener("click", () => {
+      copyTelemetry("text");
+    });
+  }
+
+  if (elements.btnShareTelemetry) {
+    elements.btnShareTelemetry.addEventListener("click", () => {
+      shareTelemetry();
+    });
+  }
+
+  if (elements.btnClearTelemetry) {
+    elements.btnClearTelemetry.addEventListener("click", () => {
+      clearCumulativeTelemetry();
     });
   }
 
@@ -952,6 +1049,9 @@ function startCalibrationSensing(rakah) {
       
       console.log(`Calibrated Rakah ${rakah}! Ambient Avg: ${ambientBrightness.average.toFixed(2)}%, LowLightMode: ${isLowLightMode}`);
       
+      // Record calibration telemetry for this Rakah
+      recordRakahCalibrationTelemetry(rakah);
+
       // Vibrate to signal active counting start
       triggerVibration(150);
       
@@ -1084,6 +1184,16 @@ function startLuminanceMonitoring() {
 // --- Core Shadow Proximity Detection State Machine (Rate of Change / Delta Method) ---
 function processDetectionState() {
   const now = Date.now();
+
+  // Track minimum light reached during Sujud for telemetry
+  if (detectionState === "IN_SUDJUD" || detectionState === "UP_PENDING") {
+    const curLight = (currentBrightness && typeof currentBrightness.average === "number") ? currentBrightness.average : null;
+    if (curLight !== null) {
+      if (minLightDuringCurrentSujud === null || curLight < minLightDuringCurrentSujud) {
+        minLightDuringCurrentSujud = curLight;
+      }
+    }
+  }
   
   if (isUsingProximitySensor) {
     const isNear = latestProximityValue !== null && latestProximityValue < Math.min(3.0, proximityMaxRange);
@@ -1197,6 +1307,9 @@ function onSujudDown() {
   
   // 2. Light tactile click to reassure that phone entered Sujud state (optional, short)
   triggerVibration(60);
+
+  // 3. Record Sujud Down Telemetry
+  recordSujudDownTelemetry();
 }
 
 function onSujudUp() {
@@ -1207,6 +1320,9 @@ function onSujudUp() {
   lastSajdahTime = Date.now();
   currentSajdahCount++;
   
+  // 3. Record Sujud Up Telemetry
+  recordSujudUpTelemetry();
+
   if (currentSajdahCount === 1) {
     // Sajdah 1 completed: Single short vibration feedback
     triggerVibration(150);
@@ -1320,6 +1436,9 @@ async function startPrayer() {
   detectionState = "CALIBRATING";
   lastSajdahTime = 0;
   
+  // Record new prayer session telemetry
+  recordSessionStartTelemetry();
+  
   // UI Display setup
   elements.activePrayerName.textContent = document.querySelector(`.btn-prayer[data-name="${selectedPrayer}"] .prayer-name`).textContent;
   updateRakahDisplay();
@@ -1391,6 +1510,9 @@ function exitPrayer(isAborted) {
   
   // Remove dark overlay
   elements.sujudOverlay.classList.remove("active");
+  
+  // Record session end telemetry
+  recordSessionEndTelemetry(isAborted);
   
   if (isAborted) {
     // Stop camera and return home
@@ -1723,7 +1845,443 @@ function resetTasbeeh() {
   triggerVibration(80);
 }
 
+// ==========================================================================
+// CUMULATIVE TELEMETRY & ILLUMINANCE LOGGING MODULE
+// ==========================================================================
 
+function formatDateTimeDisplay(date) {
+  try {
+    const d = date || new Date();
+    const pad = (n) => String(n).padStart(2, "0");
+    const year = d.getFullYear();
+    const month = pad(d.getMonth() + 1);
+    const day = pad(d.getDate());
+    const hours = pad(d.getHours());
+    const minutes = pad(d.getMinutes());
+    const seconds = pad(d.getSeconds());
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  } catch (e) {
+    return new Date().toISOString();
+  }
+}
+
+function loadCumulativeTelemetry() {
+  try {
+    const stored = localStorage.getItem(TELEMETRY_STORAGE_KEY);
+    if (stored) {
+      cumulativeTelemetry = JSON.parse(stored);
+      if (!Array.isArray(cumulativeTelemetry)) {
+        cumulativeTelemetry = [];
+      }
+    } else {
+      cumulativeTelemetry = [];
+    }
+  } catch (err) {
+    console.error("Failed to load telemetry from localStorage:", err);
+    cumulativeTelemetry = [];
+  }
+  updateTelemetryBadge();
+}
+
+function saveCumulativeTelemetry() {
+  try {
+    localStorage.setItem(TELEMETRY_STORAGE_KEY, JSON.stringify(cumulativeTelemetry));
+  } catch (err) {
+    console.error("Failed to save telemetry to localStorage:", err);
+  }
+  updateTelemetryBadge();
+}
+
+function updateTelemetryBadge() {
+  if (!elements.telemetryBadge) return;
+  const count = cumulativeTelemetry.length;
+  if (count > 0) {
+    elements.telemetryBadge.textContent = count;
+    elements.telemetryBadge.classList.remove("hidden");
+  } else {
+    elements.telemetryBadge.textContent = "0";
+    elements.telemetryBadge.classList.add("hidden");
+  }
+}
+
+function recordSessionStartTelemetry() {
+  const now = new Date();
+  activeSession = {
+    id: "session_" + Date.now(),
+    startTime: now.toISOString(),
+    dateTimeDisplay: formatDateTimeDisplay(now),
+    prayerKey: selectedPrayer,
+    prayerName: document.querySelector(`.btn-prayer[data-name="${selectedPrayer}"] .prayer-name`)?.textContent || selectedPrayer,
+    targetRakahs: targetRakahs,
+    rakahs: {},
+    completed: false,
+    totalDurationSeconds: 0
+  };
+  saveCurrentSessionTelemetry();
+}
+
+function recordRakahCalibrationTelemetry(rakah) {
+  if (!activeSession) return;
+  
+  const sensorModeText = isUsingProximitySensor
+    ? "PROXIMITY"
+    : (typeof AndroidBridge !== "undefined" ? "LIGHT_SENSOR" : "CAMERA");
+    
+  activeSession.rakahs[rakah] = {
+    rakahNumber: rakah,
+    baselineLight: Number(ambientBrightness.average.toFixed(2)),
+    shadowThreshold: Number(shadowThreshold.toFixed(2)),
+    recoveryThreshold: Number(recoveryThreshold.toFixed(2)),
+    sensorMode: sensorModeText,
+    events: []
+  };
+  saveCurrentSessionTelemetry();
+}
+
+function recordSujudDownTelemetry() {
+  currentSujudDownTimestamp = Date.now();
+  currentSujudDownLight = Number(currentBrightness.average.toFixed(2));
+  minLightDuringCurrentSujud = currentSujudDownLight;
+  currentSujudProximityDown = (latestProximityValue !== null) ? Number(latestProximityValue.toFixed(1)) : null;
+}
+
+function recordSujudUpTelemetry() {
+  if (!activeSession) return;
+  
+  const sujudUpLight = Number(currentBrightness.average.toFixed(2));
+  const durationSec = currentSujudDownTimestamp ? Number(((Date.now() - currentSujudDownTimestamp) / 1000).toFixed(1)) : 0;
+  const rakahData = activeSession.rakahs[currentRakah];
+  const baseline = (rakahData && rakahData.baselineLight > 0) ? rakahData.baselineLight : (ambientBrightness.average || 1);
+  const minVal = (minLightDuringCurrentSujud !== null) ? Number(minLightDuringCurrentSujud.toFixed(2)) : currentSujudDownLight;
+  
+  const eventData = {
+    sajdahNumber: currentSajdahCount,
+    downTimeSeconds: prayerDurationSeconds,
+    downLight: currentSujudDownLight,
+    minLight: minVal,
+    upLight: sujudUpLight,
+    durationSeconds: durationSec,
+    dropRatioPercent: Number(((currentSujudDownLight / baseline) * 100).toFixed(1)),
+    minRatioPercent: Number(((minVal / baseline) * 100).toFixed(1)),
+    riseRatioPercent: Number(((sujudUpLight / baseline) * 100).toFixed(1)),
+    proximityDownCm: currentSujudProximityDown,
+    proximityUpCm: (latestProximityValue !== null) ? Number(latestProximityValue.toFixed(1)) : null
+  };
+  
+  if (!rakahData) {
+    recordRakahCalibrationTelemetry(currentRakah);
+  }
+  if (activeSession.rakahs[currentRakah]) {
+    activeSession.rakahs[currentRakah].events.push(eventData);
+  }
+  
+  saveCurrentSessionTelemetry();
+}
+
+function recordSessionEndTelemetry(isAborted) {
+  if (!activeSession) return;
+  activeSession.completed = !isAborted;
+  activeSession.totalDurationSeconds = prayerDurationSeconds;
+  saveCurrentSessionTelemetry();
+  activeSession = null;
+  currentSujudDownTimestamp = 0;
+  minLightDuringCurrentSujud = null;
+}
+
+function saveCurrentSessionTelemetry() {
+  if (!activeSession) return;
+  const idx = cumulativeTelemetry.findIndex(s => s.id === activeSession.id);
+  if (idx >= 0) {
+    cumulativeTelemetry[idx] = activeSession;
+  } else {
+    cumulativeTelemetry.push(activeSession);
+  }
+  saveCumulativeTelemetry();
+}
+
+function openTelemetryModal() {
+  loadCumulativeTelemetry();
+  renderTelemetryList();
+  if (elements.telemetryModal) {
+    elements.telemetryModal.classList.remove("hidden");
+  }
+}
+
+function closeTelemetryModal() {
+  if (elements.telemetryModal) {
+    elements.telemetryModal.classList.add("hidden");
+  }
+}
+
+function renderTelemetryList() {
+  if (!elements.telemetryContentList) return;
+  
+  let totalSajdahs = 0;
+  cumulativeTelemetry.forEach(session => {
+    Object.values(session.rakahs || {}).forEach(rakah => {
+      totalSajdahs += (rakah.events || []).length;
+    });
+  });
+  
+  if (elements.telemetrySessionCount) {
+    const isAr = currentLang === "ar";
+    elements.telemetrySessionCount.textContent = isAr 
+      ? `الصلوات المسجلة: ${cumulativeTelemetry.length}` 
+      : `Recorded Prayers: ${cumulativeTelemetry.length}`;
+  }
+  if (elements.telemetrySajdahCount) {
+    const isAr = currentLang === "ar";
+    elements.telemetrySajdahCount.textContent = isAr
+      ? `إجمالي السجدات: ${totalSajdahs}`
+      : `Total Sujuds: ${totalSajdahs}`;
+  }
+  
+  elements.telemetryContentList.innerHTML = "";
+  
+  if (cumulativeTelemetry.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "telemetry-empty-msg";
+    empty.textContent = translations[currentLang].noTelemetryData;
+    elements.telemetryContentList.appendChild(empty);
+    return;
+  }
+  
+  // Show most recent sessions first
+  const reversedSessions = [...cumulativeTelemetry].reverse();
+  
+  reversedSessions.forEach((session, sessionIdx) => {
+    const card = document.createElement("div");
+    card.className = "telemetry-session-card";
+    
+    const min = String(Math.floor((session.totalDurationSeconds || 0) / 60)).padStart(2, "0");
+    const sec = String((session.totalDurationSeconds || 0) % 60).padStart(2, "0");
+    
+    let rakahsHtml = "";
+    const rakahsObj = session.rakahs || {};
+    
+    Object.values(rakahsObj).forEach(rakah => {
+      let sajdahsHtml = "";
+      (rakah.events || []).forEach(ev => {
+        const dropRatio = ev.dropRatioPercent;
+        const minRatio = ev.minRatioPercent;
+        const riseRatio = ev.riseRatioPercent;
+        const unit = rakah.sensorMode === "LIGHT_SENSOR" ? "lx" : "%";
+        
+        let proxInfo = "";
+        if (ev.proximityDownCm !== null) {
+          proxInfo = ` <span style="color:#a78bfa;">(قرب: ${ev.proximityDownCm}cm ➔ ${ev.proximityUpCm !== null ? ev.proximityUpCm + 'cm' : '?'})</span>`;
+        }
+        
+        sajdahsHtml += `
+          <div class="rakah-sajdah-row">
+            <div style="font-weight:600; color:#e2e8f0;">
+              ${currentLang === "ar" ? `السجدة ${ev.sajdahNumber}:` : `Sajdah ${ev.sajdahNumber}:`}
+            </div>
+            <div class="sajdah-values">
+              <span style="color:#f87171;" title="إضاءة بداية السجود">⬇️ سجود: ${ev.downLight}${unit} (${dropRatio}%)</span>
+              <span style="color:#ef4444; font-weight:700;" title="أدنى إضاءة أثناء السجود">📉 أدنى: ${ev.minLight}${unit} (${minRatio}%)</span>
+              <span style="color:#34d399;" title="إضاءة عتبة الرفع">⬆️ رفع: ${ev.upLight}${unit} (${riseRatio}%)</span>
+              <span style="color:var(--color-gold);" title="مدة السجدة">⏱️ ${ev.durationSeconds}s</span>
+              ${proxInfo}
+            </div>
+          </div>
+        `;
+      });
+      
+      const unit = rakah.sensorMode === "LIGHT_SENSOR" ? "lx" : "%";
+      rakahsHtml += `
+        <div class="telemetry-rakah-block">
+          <div class="rakah-baseline-info">
+            <span style="font-weight:700; color:var(--color-gold);">
+              ${currentLang === "ar" ? `الركعة ${rakah.rakahNumber}` : `Rakah ${rakah.rakahNumber}`}
+            </span>
+            <span>معيار (Baseline): <strong style="color:#fff;">${rakah.baselineLight}${unit}</strong></span>
+            <span>عتبة سجود: <strong>${rakah.shadowThreshold}${unit}</strong></span>
+            <span>عتبة رفع: <strong>${rakah.recoveryThreshold}${unit}</strong></span>
+          </div>
+          ${sajdahsHtml || '<div style="color:var(--text-muted); font-size:0.75rem;">لا توجد سجدات مسجلة</div>'}
+        </div>
+      `;
+    });
+    
+    card.innerHTML = `
+      <div class="session-card-header">
+        <span class="session-date">${session.dateTimeDisplay || session.startTime}</span>
+        <span class="session-prayer">${session.prayerName} (${session.targetRakahs} ركعات) - ${min}:${sec}</span>
+      </div>
+      ${rakahsHtml}
+    `;
+    
+    elements.telemetryContentList.appendChild(card);
+  });
+}
+
+function generateTelemetryCSV() {
+  const isAr = currentLang === "ar";
+  const headers = isAr
+    ? "رقم الجلسة,التاريخ والوقت,نوع الصلاة,المدة (ثانية),رقم الركعة,نوع المستشعر,المعيار (Baseline),عتبة السجود,عتبة الرفع,رقم السجدة,إضاءة السجود (Trigger),نسبة السجود %,أدنى إضاءة بالسجود (Min),أدنى نسبة %,إضاءة الرفع (Trigger),نسبة الرفع %,مدة السجود (ثانية),قرب السجود (سم),قرب الرفع (سم)\n"
+    : "Session_ID,Date_Time,Prayer,Duration_Sec,Rakah_Num,Sensor_Mode,Baseline_Light,Shadow_Threshold,Recovery_Threshold,Sajdah_Num,Sujud_Trigger_Light,Sujud_Drop_Ratio_Percent,Min_Sujud_Light,Min_Ratio_Percent,Rise_Trigger_Light,Rise_Ratio_Percent,Sujud_Duration_Sec,Proximity_Down_Cm,Proximity_Up_Cm\n";
+    
+  let rows = [];
+  
+  cumulativeTelemetry.forEach((session, sessionIdx) => {
+    const sessionNum = sessionIdx + 1;
+    const dateTime = session.dateTimeDisplay || session.startTime;
+    const prayer = session.prayerName;
+    const totalDuration = session.totalDurationSeconds || 0;
+    
+    const rakahsObj = session.rakahs || {};
+    Object.values(rakahsObj).forEach(rakah => {
+      const rakahNum = rakah.rakahNumber;
+      const mode = rakah.sensorMode;
+      const baseline = rakah.baselineLight;
+      const shadowThresh = rakah.shadowThreshold;
+      const recovThresh = rakah.recoveryThreshold;
+      
+      (rakah.events || []).forEach(ev => {
+        rows.push([
+          sessionNum,
+          `"${dateTime}"`,
+          `"${prayer}"`,
+          totalDuration,
+          rakahNum,
+          mode,
+          baseline,
+          shadowThresh,
+          recovThresh,
+          ev.sajdahNumber,
+          ev.downLight,
+          ev.dropRatioPercent,
+          ev.minLight,
+          ev.minRatioPercent,
+          ev.upLight,
+          ev.riseRatioPercent,
+          ev.durationSeconds,
+          ev.proximityDownCm !== null ? ev.proximityDownCm : "",
+          ev.proximityUpCm !== null ? ev.proximityUpCm : ""
+        ].join(","));
+      });
+    });
+  });
+  
+  return headers + rows.join("\n");
+}
+
+function generateTelemetryText() {
+  const isAr = currentLang === "ar";
+  let output = isAr 
+    ? `📊 تقرير سجل بيانات الاستضاءة والحساسات (${cumulativeTelemetry.length} صلوات مسجلة)\n` 
+    : `📊 Sensor & Light Telemetry Report (${cumulativeTelemetry.length} sessions recorded)\n`;
+  output += `====================================================\n\n`;
+  
+  cumulativeTelemetry.forEach((session, sessionIdx) => {
+    const min = String(Math.floor((session.totalDurationSeconds || 0) / 60)).padStart(2, "0");
+    const sec = String((session.totalDurationSeconds || 0) % 60).padStart(2, "0");
+    
+    output += `[صلاة ${sessionIdx + 1}] ${session.dateTimeDisplay || session.startTime} | ${session.prayerName} (${session.targetRakahs} ركعات) | المدة: ${min}:${sec}\n`;
+    
+    const rakahsObj = session.rakahs || {};
+    Object.values(rakahsObj).forEach(rakah => {
+      const unit = rakah.sensorMode === "LIGHT_SENSOR" ? "lx" : "%";
+      output += `  * الركعة ${rakah.rakahNumber} [حساس: ${rakah.sensorMode}]:\n`;
+      output += `    - المعيار (Baseline): ${rakah.baselineLight}${unit} | عتبة السجود: ${rakah.shadowThreshold}${unit} | عتبة الرفع: ${rakah.recoveryThreshold}${unit}\n`;
+      
+      (rakah.events || []).forEach(ev => {
+        output += `    - السجدة ${ev.sajdahNumber}: سجود عند ${ev.downLight}${unit} (${ev.dropRatioPercent}%) ➔ أدنى إضاءة: ${ev.minLight}${unit} (${ev.minRatioPercent}%) ➔ رفع عند ${ev.upLight}${unit} (${ev.riseRatioPercent}%) | مدة السجود: ${ev.durationSeconds} ث`;
+        if (ev.proximityDownCm !== null) {
+          output += ` | قرب: ${ev.proximityDownCm}cm`;
+        }
+        output += `\n`;
+      });
+    });
+    output += `\n`;
+  });
+  
+  return output;
+}
+
+function copyTelemetry(format) {
+  if (cumulativeTelemetry.length === 0) {
+    showToast(translations[currentLang].noTelemetryData, "info");
+    return;
+  }
+  
+  const content = (format === "csv") ? generateTelemetryCSV() : generateTelemetryText();
+  
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(content)
+      .then(() => {
+        const msg = (format === "csv") 
+          ? translations[currentLang].toastCopiedCSV 
+          : translations[currentLang].toastCopiedText;
+        showToast(msg, "success");
+        triggerVibration(80);
+      })
+      .catch((err) => {
+        console.warn("Clipboard API write failed, trying fallback:", err);
+        fallbackCopyText(content, format);
+      });
+  } else {
+    fallbackCopyText(content, format);
+  }
+}
+
+function fallbackCopyText(text, format) {
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  textArea.style.position = "fixed";
+  textArea.style.opacity = "0";
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  try {
+    document.execCommand("copy");
+    const msg = (format === "csv") 
+      ? translations[currentLang].toastCopiedCSV 
+      : translations[currentLang].toastCopiedText;
+    showToast(msg, "success");
+    triggerVibration(80);
+  } catch (err) {
+    console.error("Fallback copy failed:", err);
+    showToast("حدث خطأ أثناء النسخ للحافظة", "error");
+  }
+  document.body.removeChild(textArea);
+}
+
+async function shareTelemetry() {
+  if (cumulativeTelemetry.length === 0) {
+    showToast(translations[currentLang].noTelemetryData, "info");
+    return;
+  }
+  
+  const textContent = generateTelemetryText();
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: "سجل قياسات عداد الركعات",
+        text: textContent
+      });
+      triggerVibration(80);
+    } catch (err) {
+      console.warn("Share cancelled or failed:", err);
+    }
+  } else {
+    copyTelemetry("text");
+  }
+}
+
+function clearCumulativeTelemetry() {
+  if (cumulativeTelemetry.length === 0) return;
+  
+  const confirmMsg = translations[currentLang].clearLogsConfirm;
+  if (confirm(confirmMsg)) {
+    cumulativeTelemetry = [];
+    saveCumulativeTelemetry();
+    renderTelemetryList();
+    showToast(translations[currentLang].toastClearedLogs, "info");
+    triggerVibration([100, 50, 100]);
+  }
+}
 
 // Register Service Worker for PWA Offline support
 if ("serviceWorker" in navigator) {
