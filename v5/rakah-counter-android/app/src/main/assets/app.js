@@ -77,7 +77,10 @@ const translations = {
     noTelemetryData: "لا توجد بيانات صلوات مسجلة بعد.",
     toastCopiedCSV: "تم نسخ السجل بصيغة CSV في الحافظة!",
     toastCopiedText: "تم نسخ التقرير النصي في الحافظة!",
-    toastClearedLogs: "تم مسح سجل القياسات بنجاح."
+    toastClearedLogs: "تم مسح سجل القياسات بنجاح.",
+    proxThresholdLabel: "عتبة التحويل لمستشعر القرب (لوكس):",
+    proxThresholdHint: "إذا كان معيار الإضاءة أقل من هذه القيمة، يتم تفعيل مستشعر التقارب.",
+    toastProxThresholdUpdated: "تم تحديث عتبة مستشعر القرب إلى:"
   },
   en: {
     logoText: "Rakah Counter",
@@ -156,7 +159,10 @@ const translations = {
     noTelemetryData: "No prayer telemetry recorded yet.",
     toastCopiedCSV: "Telemetry copied as CSV to clipboard!",
     toastCopiedText: "Telemetry text report copied to clipboard!",
-    toastClearedLogs: "Telemetry logs cleared successfully."
+    toastClearedLogs: "Telemetry logs cleared successfully.",
+    proxThresholdLabel: "Proximity Switch Threshold (Lux):",
+    proxThresholdHint: "If ambient baseline is lower than this value, proximity sensor is used.",
+    toastProxThresholdUpdated: "Proximity switch threshold updated to:"
   }
 };
 
@@ -168,6 +174,7 @@ let latestBridgeValue = null; // Sensor reading from AndroidBridge (lux)
 let latestProximityValue = null; // Proximity reading (cm)
 let proximityMaxRange = 5.0; // Max range of proximity sensor
 let isUsingProximitySensor = false; // Mode set dynamically after calibration
+let proximitySwitchLuxThreshold = parseFloat(localStorage.getItem("rakah_prox_lux_threshold")) || 3.0;
 
 window.onSensorData = function(lux) {
   latestBridgeValue = lux;
@@ -185,8 +192,8 @@ let videoStream = null;
 let brightnessInterval = null;
 let currentBrightness = { center: 0, periphery: 0, average: 0 };
 let ambientBrightness = { center: 0, periphery: 0, average: 0 }; // Baseline calibrated brightness
-let shadowThreshold = 0; // Value below which Sujud is confirmed (usually 50% of ambient average)
-let recoveryThreshold = 0; // Value above which rise is confirmed (usually 65% of ambient average)
+let shadowThreshold = 0; // Value below which Sujud is confirmed (35% of ambient average)
+let recoveryThreshold = 0; // Value above which rise is confirmed (80% of ambient average)
 let contrastThreshold = 0; // Minimum difference between periphery and center to confirm approach/exit
 let isLowLightMode = false; // Mode set dynamically based on baseline ambient light (<= 25%)
 let detectionState = "IDLE"; // IDLE, DOWN_PENDING, IN_SUDJUD, UP_PENDING
@@ -205,7 +212,7 @@ let prayerTimer = null;
 let prayerDurationSeconds = 0;
 let wakeLock = null;
 // Cumulative Telemetry State (Persisted across sessions & reboots via LocalStorage)
-const TELEMETRY_STORAGE_KEY = "rakah_telemetry_logs_v1";
+const TELEMETRY_STORAGE_KEY = "rakah_telemetry_logs_v2";
 let cumulativeTelemetry = [];
 let activeSession = null;
 let currentSujudDownTimestamp = 0;
@@ -324,6 +331,7 @@ const elements = {
   telemetrySessionCount: document.getElementById("telemetry-session-count"),
   telemetrySajdahCount: document.getElementById("telemetry-sajdah-count"),
   btnViewTelemetryCompleted: document.getElementById("btn-view-telemetry-completed"),
+  inputProxThreshold: document.getElementById("input-prox-threshold"),
 
   // Debug panel elements
   dbgCurrent: document.getElementById("dbg-current"),
@@ -631,6 +639,21 @@ function setupEventHandlers() {
   if (elements.btnClearTelemetry) {
     elements.btnClearTelemetry.addEventListener("click", () => {
       clearCumulativeTelemetry();
+    });
+  }
+
+  if (elements.inputProxThreshold) {
+    elements.inputProxThreshold.value = proximitySwitchLuxThreshold;
+    elements.inputProxThreshold.addEventListener("change", (e) => {
+      let val = parseFloat(e.target.value);
+      if (isNaN(val) || val < 0) {
+        val = 3.0;
+        elements.inputProxThreshold.value = 3.0;
+      }
+      proximitySwitchLuxThreshold = val;
+      localStorage.setItem("rakah_prox_lux_threshold", val.toString());
+      const msg = (translations[currentLang].toastProxThresholdUpdated || "عتبة مستشعر القرب:") + " " + val + " Lux";
+      showToast(msg);
     });
   }
 
@@ -1022,8 +1045,8 @@ function startCalibrationSensing(rakah) {
         average: overallAvg
       };
       
-      shadowThreshold = ambientBrightness.average * 0.25;
-      recoveryThreshold = ambientBrightness.average * 0.65;
+      shadowThreshold = ambientBrightness.average * 0.35;
+      recoveryThreshold = ambientBrightness.average * 0.80;
       // Make contrast threshold much more lenient (e.g. 4% of ambient or absolute 3% difference, whichever is larger)
       contrastThreshold = Math.max(3.0, ambientBrightness.average * 0.04);
       
@@ -1032,12 +1055,12 @@ function startCalibrationSensing(rakah) {
       
       // Dynamic Proximity Mode Decision (only for Android physical sensor mode)
       if (typeof AndroidBridge !== "undefined") {
-        if (ambientBrightness.average < 6.0) { // Ambient average is lux in AndroidBridge mode
+        if (ambientBrightness.average < proximitySwitchLuxThreshold) { // Ambient average is lux in AndroidBridge mode
           isUsingProximitySensor = true;
-          console.log(`Low light detected (${ambientBrightness.average.toFixed(1)} lux). Using Proximity Sensor for Rakah ${rakah}.`);
+          console.log(`Low light detected (${ambientBrightness.average.toFixed(1)} lux < ${proximitySwitchLuxThreshold} lux). Using Proximity Sensor for Rakah ${rakah}.`);
         } else {
           isUsingProximitySensor = false;
-          console.log(`Normal light detected (${ambientBrightness.average.toFixed(1)} lux). Using Light Sensor for Rakah ${rakah}.`);
+          console.log(`Normal light detected (${ambientBrightness.average.toFixed(1)} lux >= ${proximitySwitchLuxThreshold} lux). Using Light Sensor for Rakah ${rakah}.`);
         }
         updateSensorModeUI();
       } else {
@@ -1867,6 +1890,9 @@ function formatDateTimeDisplay(date) {
 
 function loadCumulativeTelemetry() {
   try {
+    // Clear older telemetry version logs
+    localStorage.removeItem("rakah_telemetry_logs_v1");
+
     const stored = localStorage.getItem(TELEMETRY_STORAGE_KEY);
     if (stored) {
       cumulativeTelemetry = JSON.parse(stored);
@@ -2001,6 +2027,9 @@ function saveCurrentSessionTelemetry() {
 
 function openTelemetryModal() {
   loadCumulativeTelemetry();
+  if (elements.inputProxThreshold) {
+    elements.inputProxThreshold.value = proximitySwitchLuxThreshold;
+  }
   renderTelemetryList();
   if (elements.telemetryModal) {
     elements.telemetryModal.classList.remove("hidden");

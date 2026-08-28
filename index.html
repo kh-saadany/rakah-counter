@@ -281,6 +281,19 @@
           <span id="telemetry-sajdah-count" class="badge bg-gold">إجمالي السجدات: 0</span>
         </div>
 
+        <div class="telemetry-settings-box">
+          <div class="setting-item">
+            <div class="setting-label-group">
+              <label for="input-prox-threshold" data-i18n="proxThresholdLabel">عتبة التحويل لمستشعر القرب (لوكس):</label>
+              <small class="setting-hint" data-i18n="proxThresholdHint">إذا كان معيار الإضاءة أقل من هذه القيمة، يتم تفعيل مستشعر التقارب.</small>
+            </div>
+            <div class="setting-input-group">
+              <input type="number" id="input-prox-threshold" min="0" max="30" step="0.5" value="3.0">
+              <span class="unit-text">Lux</span>
+            </div>
+          </div>
+        </div>
+
         <div class="telemetry-actions-row">
           <button id="btn-copy-telemetry-csv" class="btn-sm btn-gold" data-i18n="copyCSV">📋 نسخ CSV</button>
           <button id="btn-copy-telemetry-text" class="btn-sm btn-outline" data-i18n="copyText">📝 نسخ تقرير نصي</button>
@@ -301,6 +314,6 @@
   </main>
 
   <!-- Application Script with Cache Busting -->
-  <script src="app.js?v=38"></script>
+  <script src="app.js?v=39"></script>
 </body>
 </html>
