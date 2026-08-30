@@ -90,6 +90,21 @@ html[lang="en"] body {
   box-sizing: border-box;
 }
 
+/* Faint, quiet hairline Islamic geometric watermark */
+#app-container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0 L60 30 L30 60 L0 30 Z M30 10 L50 30 L30 50 L10 30 Z' fill='none' stroke='%23d4af37' stroke-width='0.4' stroke-opacity='0.035'/%3E%3Ccircle cx='30' cy='30' r='14' fill='none' stroke='%2310b981' stroke-width='0.4' stroke-opacity='0.025'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+#app-container > * {
+  position: relative;
+  z-index: 1;
+}
+
 /* Background overlay during active Sujud (Full blackout except minimal elements if any) */
 #sujud-overlay {
   position: fixed;
@@ -425,18 +440,18 @@ html[lang="en"] body {
 }
 
 .counter-number {
-  font-size: clamp(8rem, 25vh, 14.4rem); /* Responsive scaling to fit screen height without scroll */
+  font-size: clamp(8.5rem, 28vh, 15rem); /* Responsive scaling to fit screen height and remain highly visible from 1.5m */
   font-weight: 800;
-  color: var(--text-primary);
+  color: #ffffff;
   line-height: 0.9;
   font-family: var(--font-en);
-  text-shadow: 0 0 30px rgba(255, 255, 255, 0.15), 0 0 60px var(--color-gold-glow);
+  text-shadow: 0 0 25px rgba(255, 255, 255, 0.2), 0 0 60px rgba(255, 255, 255, 0.1);
   margin: 5px 0;
 }
 
 .counter-number.proximity-mode {
   color: #FFD700 !important;
-  text-shadow: 0 0 30px rgba(255, 215, 0, 0.3), 0 0 60px var(--color-gold-glow) !important;
+  text-shadow: 0 0 30px rgba(255, 215, 0, 0.4), 0 0 60px var(--color-gold-glow) !important;
 }
 
 .counter-rakah-name {
@@ -461,11 +476,11 @@ html[lang="en"] body {
 }
 
 .sujud-dot {
-  width: 48px;
-  height: 48px;
+  width: 54px;
+  height: 54px;
   border-radius: 50%;
-  border: 1.5px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.02);
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  background: rgba(0, 0, 0, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -474,16 +489,17 @@ html[lang="en"] body {
 }
 
 .sujud-dot svg {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
+  stroke-width: 3.5;
 }
 
 .sujud-step.active .sujud-dot {
-  border-color: var(--color-emerald);
-  background: rgba(16, 185, 129, 0.15);
-  color: var(--color-emerald);
-  box-shadow: 0 0 15px var(--color-emerald-glow);
-  transform: scale(1.08);
+  border-color: #10b981;
+  background: #10b981;
+  color: #ffffff;
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.6);
+  transform: scale(1.1);
 }
 
 .sujud-label {
@@ -510,7 +526,7 @@ html[lang="en"] body {
   100% { opacity: 0.5; }
 }
 
-/* Safety Long-Press Exit Control */
+/* Safety Long-Press Exit Control - Low contrast discrete slate-gray button */
 .exit-control-wrapper {
   margin-top: auto;
   width: 100%;
@@ -519,24 +535,25 @@ html[lang="en"] body {
 .btn-hold-exit {
   width: 100%;
   position: relative;
-  background: rgba(239, 68, 68, 0.08);
-  border: 1.5px solid rgba(239, 68, 68, 0.25);
-  color: var(--color-red);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.6);
   border-radius: 16px;
-  padding: 15px 20px;
-  font-size: 0.95rem;
-  font-weight: 700;
+  padding: 14px 20px;
+  font-size: 0.92rem;
+  font-weight: 600;
   cursor: pointer;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: inherit;
-  transition: transform 0.1s ease;
+  transition: all 0.2s ease;
 }
 
 .btn-hold-exit:active {
   transform: scale(0.99);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .btn-hold-progress {
@@ -545,7 +562,7 @@ html[lang="en"] body {
   bottom: 0;
   left: 0;
   width: 0%;
-  background: rgba(239, 68, 68, 0.2);
+  background: rgba(255, 255, 255, 0.15);
   transition: width 0.05s linear;
 }
 
@@ -842,273 +859,186 @@ html[dir="rtl"] .toast {
   display: inline-block;
 }
 
-#telemetry-modal {
+/* ==========================================================================
+   Settings Bottom Sheet Modal & App Controls
+   ========================================================================== */
+.modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(3, 8, 5, 0.95);
+  background: rgba(0, 0, 0, 0.75);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   z-index: 1000;
   display: flex;
   justify-content: center;
-  align-items: center;
-  padding: 16px;
+  align-items: flex-end; /* Bottom sheet layout */
+  padding: 0;
   box-sizing: border-box;
+  animation: modal-fade-in 0.25s ease forwards;
 }
 
-.telemetry-card {
+@keyframes modal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.settings-sheet {
   width: 100%;
-  max-width: 520px;
-  max-height: 92vh;
-  background: rgba(12, 35, 22, 0.92);
+  max-width: 480px;
+  background: rgba(12, 35, 22, 0.96);
   border: 1.5px solid var(--color-gold);
-  border-radius: 24px;
-  padding: 20px 16px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+  border-bottom: none;
+  border-radius: 28px 28px 0 0;
+  padding: 24px 20px calc(24px + var(--safe-bottom)) 20px;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.85);
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  animation: sheet-slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.telemetry-header {
+@keyframes sheet-slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.settings-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.15);
 }
 
-.telemetry-header-title {
+.settings-title-wrap {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
-.telemetry-header-title h2 {
-  font-size: 1.15rem;
+.settings-title-wrap h2 {
+  font-size: 1.2rem;
   font-weight: 800;
   color: var(--color-gold);
   margin: 0;
 }
 
-.telemetry-icon {
+.settings-icon {
   font-size: 1.3rem;
 }
 
 .btn-close {
-  padding: 4px 10px;
-  font-size: 1rem;
-}
-
-.telemetry-summary-bar {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
   display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.btn-close:active {
+  transform: scale(0.92);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.setting-item-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 20px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
 }
 
-.telemetry-settings-box {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(212, 175, 55, 0.3);
-  border-radius: 16px;
-  padding: 10px 14px;
-  margin-bottom: 12px;
-}
-
-.setting-item {
+.setting-item-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
 }
 
-.setting-label-group {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex: 1;
-}
-
-.setting-label-group label {
-  font-size: 0.85rem;
+.setting-item-header label {
+  font-size: 0.95rem;
   font-weight: 700;
   color: var(--color-gold);
 }
 
 .setting-hint {
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.65);
-  line-height: 1.3;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.45;
 }
 
-.setting-input-group {
+.slider-container {
   display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.setting-input-group input[type="number"] {
-  width: 68px;
-  background: rgba(0, 0, 0, 0.5);
-  border: 1.5px solid var(--color-gold);
-  border-radius: 8px;
-  color: #fff;
-  font-size: 0.95rem;
-  font-weight: bold;
-  text-align: center;
-  padding: 6px 4px;
-  font-family: inherit;
-  outline: none;
-}
-
-.setting-input-group input[type="number"]:focus {
-  border-color: #fff;
-  box-shadow: 0 0 8px rgba(212, 175, 55, 0.6);
-}
-
-.unit-text {
-  font-size: 0.8rem;
-  color: var(--color-gold);
-  font-weight: bold;
-}
-
-.telemetry-actions-row {
-  display: flex;
+  flex-direction: column;
   gap: 8px;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
+  padding-top: 8px;
 }
 
-.btn-sm {
-  border: none;
-  border-radius: 12px;
-  padding: 7px 12px;
-  font-size: 0.8rem;
-  font-weight: 700;
+.styled-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  outline: none;
   cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  transition: all 0.2s ease;
-  font-family: inherit;
 }
 
-.btn-sm:active {
-  transform: scale(0.96);
+.styled-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--color-gold);
+  box-shadow: 0 0 12px var(--color-gold-glow);
+  cursor: pointer;
+  border: 2px solid #ffffff;
+  transition: transform 0.15s ease;
 }
 
-.btn-sm.btn-gold {
-  background: linear-gradient(135deg, var(--color-gold) 0%, #b89326 100%);
-  color: #030704;
+.styled-slider::-webkit-slider-thumb:active {
+  transform: scale(1.15);
 }
 
-.btn-sm.btn-outline {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: var(--text-primary);
+.styled-slider::-moz-range-thumb {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--color-gold);
+  box-shadow: 0 0 12px var(--color-gold-glow);
+  cursor: pointer;
+  border: 2px solid #ffffff;
 }
 
-.btn-sm.btn-danger {
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.4);
+.slider-ticks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+/* Exit button in header */
+.btn-exit {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.25);
   color: #ff8888;
 }
 
-.telemetry-content-list {
-  flex: 1;
-  overflow-y: auto;
-  max-height: 52vh;
-  padding-right: 4px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 8px;
-}
-
-.telemetry-content-list::-webkit-scrollbar {
-  width: 5px;
-}
-
-.telemetry-content-list::-webkit-scrollbar-thumb {
-  background: rgba(212, 175, 55, 0.3);
-  border-radius: 4px;
-}
-
-.telemetry-empty-msg {
-  text-align: center;
-  padding: 30px 10px;
-  color: var(--text-muted);
-  font-size: 0.95rem;
-}
-
-.telemetry-session-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(212, 175, 55, 0.2);
-  border-radius: 16px;
-  padding: 12px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.session-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  padding-bottom: 6px;
-  font-size: 0.82rem;
-}
-
-.session-date {
-  font-weight: 700;
-  color: var(--color-gold);
-  font-family: var(--font-en);
-}
-
-.session-prayer {
-  color: var(--text-primary);
-  font-weight: 600;
-}
-
-.telemetry-rakah-block {
-  background: rgba(0, 0, 0, 0.25);
-  border-radius: 10px;
-  padding: 8px 10px;
-  font-size: 0.8rem;
-}
-
-.rakah-baseline-info {
-  display: flex;
-  justify-content: space-between;
-  color: var(--text-muted);
-  margin-bottom: 6px;
-  border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
-  padding-bottom: 4px;
-  font-size: 0.76rem;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.rakah-sajdah-row {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  padding: 5px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-}
-
-.rakah-sajdah-row:last-child {
-  border-bottom: none;
-}
-
-.sajdah-values {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font-en);
-  font-size: 0.78rem;
-  flex-wrap: wrap;
+.btn-exit:active {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: var(--color-red);
 }

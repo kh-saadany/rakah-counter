@@ -74,12 +74,10 @@ const translations = {
     clearLogs: "🗑️ مسح السجل",
     clearLogsConfirm: "هل أنت متأكد من مسح جميع بيانات الصلوات المسجلة؟ لن يمكن استرجاعها.",
     close: "إغلاق",
-    noTelemetryData: "لا توجد بيانات صلوات مسجلة بعد.",
-    toastCopiedCSV: "تم نسخ السجل بصيغة CSV في الحافظة!",
-    toastCopiedText: "تم نسخ التقرير النصي في الحافظة!",
-    toastClearedLogs: "تم مسح سجل القياسات بنجاح.",
-    proxThresholdLabel: "عتبة التحويل لمستشعر القرب (لوكس):",
-    proxThresholdHint: "إذا كان معيار الإضاءة أقل من هذه القيمة، يتم تفعيل مستشعر التقارب.",
+    settingsTitle: "الإعدادات",
+    proxThresholdLabel: "عتبة التحويل لمستشعر القرب:",
+    proxThresholdHint: "إذا كان معيار الإضاءة أقل من هذه القيمة في بداية الركعة، يعتمد التطبيق على مستشعر التقارب الفيزيائي.",
+    exitAppConfirm: "هل تود الخروج من التطبيق تماماً؟",
     toastProxThresholdUpdated: "تم تحديث عتبة مستشعر القرب إلى:"
   },
   en: {
@@ -156,12 +154,10 @@ const translations = {
     clearLogs: "🗑️ Clear Logs",
     clearLogsConfirm: "Are you sure you want to clear all recorded telemetry? This cannot be undone.",
     close: "Close",
-    noTelemetryData: "No prayer telemetry recorded yet.",
-    toastCopiedCSV: "Telemetry copied as CSV to clipboard!",
-    toastCopiedText: "Telemetry text report copied to clipboard!",
-    toastClearedLogs: "Telemetry logs cleared successfully.",
-    proxThresholdLabel: "Proximity Switch Threshold (Lux):",
-    proxThresholdHint: "If ambient baseline is lower than this value, proximity sensor is used.",
+    settingsTitle: "Settings",
+    proxThresholdLabel: "Proximity Switch Threshold:",
+    proxThresholdHint: "If baseline ambient light is lower than this value, proximity sensor is used.",
+    exitAppConfirm: "Do you want to exit the app completely?",
     toastProxThresholdUpdated: "Proximity switch threshold updated to:"
   }
 };
@@ -317,21 +313,14 @@ const elements = {
   btnCompletedStartAthkar: document.getElementById("btn-completed-start-athkar"),
   btnAthkarBackHome: document.getElementById("btn-athkar-back-home"),
 
-  // Telemetry elements
-  btnTelemetry: document.getElementById("btn-telemetry"),
-  telemetryBadge: document.getElementById("telemetry-badge"),
-  telemetryModal: document.getElementById("telemetry-modal"),
-  btnCloseTelemetry: document.getElementById("btn-close-telemetry"),
-  btnTelemetryDone: document.getElementById("btn-telemetry-done"),
-  btnCopyTelemetryCSV: document.getElementById("btn-copy-telemetry-csv"),
-  btnCopyTelemetryText: document.getElementById("btn-copy-telemetry-text"),
-  btnShareTelemetry: document.getElementById("btn-share-telemetry"),
-  btnClearTelemetry: document.getElementById("btn-clear-telemetry"),
-  telemetryContentList: document.getElementById("telemetry-content-list"),
-  telemetrySessionCount: document.getElementById("telemetry-session-count"),
-  telemetrySajdahCount: document.getElementById("telemetry-sajdah-count"),
-  btnViewTelemetryCompleted: document.getElementById("btn-view-telemetry-completed"),
-  inputProxThreshold: document.getElementById("input-prox-threshold"),
+  // Settings & App Controls
+  btnSettings: document.getElementById("btn-settings"),
+  btnExitApp: document.getElementById("btn-exit-app"),
+  settingsModal: document.getElementById("settings-modal"),
+  btnCloseSettings: document.getElementById("btn-close-settings"),
+  btnSettingsDone: document.getElementById("btn-settings-done"),
+  proxSlider: document.getElementById("prox-slider"),
+  proxValBadge: document.getElementById("prox-val-badge"),
 
   // Debug panel elements
   dbgCurrent: document.getElementById("dbg-current"),
@@ -346,7 +335,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initializeDefaultRakahs();
   setLanguage(currentLang);
   setupEventHandlers();
-  loadCumulativeTelemetry();
 });
 
 // Set default Rakahs count based on the current prayer time of day, taking DST into account
@@ -594,66 +582,45 @@ function setupEventHandlers() {
   }
 
   // Telemetry Modal Triggers & Actions
-  if (elements.btnTelemetry) {
-    elements.btnTelemetry.addEventListener("click", () => {
-      openTelemetryModal();
+  // Exit App button (exits process completely in Android, window.close in browser)
+  if (elements.btnExitApp) {
+    elements.btnExitApp.addEventListener("click", () => {
+      exitEntireApp();
     });
   }
 
-  if (elements.btnViewTelemetryCompleted) {
-    elements.btnViewTelemetryCompleted.addEventListener("click", () => {
-      openTelemetryModal();
+  // Settings Modal triggers and slider binding
+  if (elements.btnSettings) {
+    elements.btnSettings.addEventListener("click", () => {
+      openSettingsModal();
     });
   }
 
-  if (elements.btnCloseTelemetry) {
-    elements.btnCloseTelemetry.addEventListener("click", () => {
-      closeTelemetryModal();
+  if (elements.btnCloseSettings) {
+    elements.btnCloseSettings.addEventListener("click", () => {
+      closeSettingsModal();
     });
   }
 
-  if (elements.btnTelemetryDone) {
-    elements.btnTelemetryDone.addEventListener("click", () => {
-      closeTelemetryModal();
+  if (elements.btnSettingsDone) {
+    elements.btnSettingsDone.addEventListener("click", () => {
+      closeSettingsModal();
     });
   }
 
-  if (elements.btnCopyTelemetryCSV) {
-    elements.btnCopyTelemetryCSV.addEventListener("click", () => {
-      copyTelemetry("csv");
-    });
-  }
-
-  if (elements.btnCopyTelemetryText) {
-    elements.btnCopyTelemetryText.addEventListener("click", () => {
-      copyTelemetry("text");
-    });
-  }
-
-  if (elements.btnShareTelemetry) {
-    elements.btnShareTelemetry.addEventListener("click", () => {
-      shareTelemetry();
-    });
-  }
-
-  if (elements.btnClearTelemetry) {
-    elements.btnClearTelemetry.addEventListener("click", () => {
-      clearCumulativeTelemetry();
-    });
-  }
-
-  if (elements.inputProxThreshold) {
-    elements.inputProxThreshold.value = proximitySwitchLuxThreshold;
-    elements.inputProxThreshold.addEventListener("change", (e) => {
+  if (elements.proxSlider) {
+    elements.proxSlider.value = proximitySwitchLuxThreshold;
+    if (elements.proxValBadge) {
+      elements.proxValBadge.textContent = `${proximitySwitchLuxThreshold.toFixed(1)} Lux`;
+    }
+    elements.proxSlider.addEventListener("input", (e) => {
       let val = parseFloat(e.target.value);
-      if (isNaN(val) || val < 0) {
-        val = 3.0;
-        elements.inputProxThreshold.value = 3.0;
-      }
+      if (isNaN(val) || val < 0) val = 3.0;
       proximitySwitchLuxThreshold = val;
+      if (elements.proxValBadge) {
+        elements.proxValBadge.textContent = `${val.toFixed(1)} Lux`;
+      }
       localStorage.setItem("rakah_prox_lux_threshold", val.toString());
-      const msg = (translations[currentLang].toastProxThresholdUpdated || "عتبة مستشعر القرب:") + " " + val + " Lux";
-      showToast(msg);
     });
   }
 
@@ -2025,20 +1992,29 @@ function saveCurrentSessionTelemetry() {
   saveCumulativeTelemetry();
 }
 
-function openTelemetryModal() {
-  loadCumulativeTelemetry();
-  if (elements.inputProxThreshold) {
-    elements.inputProxThreshold.value = proximitySwitchLuxThreshold;
+function openSettingsModal() {
+  if (elements.proxSlider) {
+    elements.proxSlider.value = proximitySwitchLuxThreshold;
   }
-  renderTelemetryList();
-  if (elements.telemetryModal) {
-    elements.telemetryModal.classList.remove("hidden");
+  if (elements.proxValBadge) {
+    elements.proxValBadge.textContent = `${proximitySwitchLuxThreshold.toFixed(1)} Lux`;
+  }
+  if (elements.settingsModal) {
+    elements.settingsModal.classList.remove("hidden");
   }
 }
 
-function closeTelemetryModal() {
-  if (elements.telemetryModal) {
-    elements.telemetryModal.classList.add("hidden");
+function closeSettingsModal() {
+  if (elements.settingsModal) {
+    elements.settingsModal.classList.add("hidden");
+  }
+}
+
+function exitEntireApp() {
+  if (typeof AndroidBridge !== "undefined" && typeof AndroidBridge.exitApp === "function") {
+    AndroidBridge.exitApp();
+  } else {
+    window.close();
   }
 }
 

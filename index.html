@@ -41,8 +41,11 @@
         <span class="logo-text" data-i18n="logoText">عداد الركعات</span>
       </div>
       <div class="header-actions">
-        <button id="btn-telemetry" class="btn-icon" aria-label="Telemetry Logs" title="سجل قياسات الاستضاءة">
-          📊 <span id="telemetry-badge" class="telemetry-badge hidden">0</span>
+        <button id="btn-settings" class="btn-icon" aria-label="Settings" title="الإعدادات">
+          ⚙️
+        </button>
+        <button id="btn-exit-app" class="btn-icon btn-exit" aria-label="Exit Application" title="خروج من التطبيق">
+          🚪
         </button>
         <button id="btn-lang" class="btn-icon" aria-label="Toggle Language">
           🌐 <span id="lang-text">EN</span>
@@ -239,13 +242,10 @@
         <p class="complete-subtitle" data-i18n="acceptDesc">الحمد لله الذي بنعمته تتم الصالحات.</p>
       </div>
 
-      <!-- Back home button, start Athkar button, and view telemetry button -->
+      <!-- Back home button and start Athkar button -->
       <div class="complete-back-btn-wrapper">
         <button id="btn-completed-start-athkar" class="btn btn-primary font-bold">
           📿 <span data-i18n="startAthkar">البدء في الأذكار</span>
-        </button>
-        <button id="btn-view-telemetry-completed" class="btn btn-secondary font-bold" style="margin-top: 12px;">
-          📊 <span data-i18n="viewTelemetry">سجل قياسات الاستضاءة</span>
         </button>
         <button id="btn-back-home" class="btn btn-secondary font-bold" style="margin-top: 12px;">
           🏠 <span data-i18n="backHome">العودة للرئيسية</span>
@@ -264,48 +264,35 @@
     </section>
 
     <!-- ==========================================
-         VIEW 5: CUMULATIVE TELEMETRY MODAL OVERLAY
+         SETTINGS MODAL (BOTTOM SHEET)
          ========================================== -->
-    <div id="telemetry-modal" class="hidden">
-      <div class="telemetry-card">
-        <div class="telemetry-header">
-          <div class="telemetry-header-title">
-            <span class="telemetry-icon">📊</span>
-            <h2 data-i18n="telemetryTitle">سجل بيانات الاستضاءة والحساسات</h2>
+    <div id="settings-modal" class="modal-overlay hidden">
+      <div class="settings-sheet glass-card">
+        <div class="settings-header">
+          <div class="settings-title-wrap">
+            <span class="settings-icon">⚙️</span>
+            <h2 data-i18n="settingsTitle">الإعدادات</h2>
           </div>
-          <button id="btn-close-telemetry" class="btn-icon btn-close" aria-label="Close">✕</button>
+          <button id="btn-close-settings" class="btn-icon btn-close" aria-label="Close">✕</button>
         </div>
 
-        <div class="telemetry-summary-bar">
-          <span id="telemetry-session-count" class="badge">الصلوات المسجلة: 0</span>
-          <span id="telemetry-sajdah-count" class="badge bg-gold">إجمالي السجدات: 0</span>
-        </div>
-
-        <div class="telemetry-settings-box">
-          <div class="setting-item">
-            <div class="setting-label-group">
-              <label for="input-prox-threshold" data-i18n="proxThresholdLabel">عتبة التحويل لمستشعر القرب (لوكس):</label>
-              <small class="setting-hint" data-i18n="proxThresholdHint">إذا كان معيار الإضاءة أقل من هذه القيمة، يتم تفعيل مستشعر التقارب.</small>
-            </div>
-            <div class="setting-input-group">
-              <input type="number" id="input-prox-threshold" min="0" max="30" step="0.5" value="3.0">
-              <span class="unit-text">Lux</span>
+        <div class="setting-item-box">
+          <div class="setting-item-header">
+            <label for="prox-slider" data-i18n="proxThresholdLabel">عتبة التحويل لمستشعر القرب:</label>
+            <span id="prox-val-badge" class="badge bg-gold">3.0 Lux</span>
+          </div>
+          <p class="setting-hint" data-i18n="proxThresholdHint">إذا كان معيار الإضاءة أقل من هذه القيمة في بداية الركعة، يعتمد التطبيق على مستشعر التقارب الفيزيائي.</p>
+          <div class="slider-container">
+            <input type="range" id="prox-slider" min="0" max="20" step="0.5" value="3.0" class="styled-slider">
+            <div class="slider-ticks">
+              <span>0 Lux</span>
+              <span>10 Lux</span>
+              <span>20 Lux</span>
             </div>
           </div>
         </div>
 
-        <div class="telemetry-actions-row">
-          <button id="btn-copy-telemetry-csv" class="btn-sm btn-gold" data-i18n="copyCSV">📋 نسخ CSV</button>
-          <button id="btn-copy-telemetry-text" class="btn-sm btn-outline" data-i18n="copyText">📝 نسخ تقرير نصي</button>
-          <button id="btn-share-telemetry" class="btn-sm btn-outline" data-i18n="share">📤 مشاركة</button>
-          <button id="btn-clear-telemetry" class="btn-sm btn-danger" data-i18n="clearLogs">🗑️ مسح السجل</button>
-        </div>
-
-        <div id="telemetry-content-list" class="telemetry-content-list">
-          <!-- Dynamically populated prayer telemetry cards -->
-        </div>
-
-        <button id="btn-telemetry-done" class="btn btn-secondary font-bold" style="margin-top: 12px;" data-i18n="close">
+        <button id="btn-settings-done" class="btn btn-primary font-bold" style="margin-top: 18px;" data-i18n="close">
           إغلاق
         </button>
       </div>
@@ -314,6 +301,6 @@
   </main>
 
   <!-- Application Script with Cache Busting -->
-  <script src="app.js?v=39"></script>
+  <script src="app.js?v=40"></script>
 </body>
 </html>

@@ -1,5 +1,6 @@
 package com.rakah.counter
 
+import android.app.Activity
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -47,6 +48,17 @@ class AndroidBridge(private val context: Context, private val webView: WebView) 
             sensorManager.unregisterListener(this)
             isListening = false
             Log.d("AndroidBridge", "Sensors unregistered.")
+        }
+    }
+
+    @JavascriptInterface
+    fun exitApp() {
+        webView.post {
+            try {
+                (context as? Activity)?.finishAffinity()
+            } catch (e: Exception) {
+                Log.e("AndroidBridge", "Error exiting app: ${e.message}")
+            }
         }
     }
 
